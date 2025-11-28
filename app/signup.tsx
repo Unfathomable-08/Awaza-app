@@ -1,4 +1,3 @@
-// app/login.tsx (or wherever you have it)
 import { View, Text, StyleSheet, StatusBar, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -8,7 +7,6 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Icon from '../assets/icons';
-import { supabase } from '../lib/supabase';
 
 export default function Signup() {
   const router = useRouter();
@@ -23,17 +21,6 @@ export default function Signup() {
       return;
     }
     setLoading(true);
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: emailRef.current,
-      password: passwordRef.current,
-    })
-
-    if (error){
-      Alert.alert('Sign Up', error.message);
-    }
-
-    console.log('data: ', data);
     
     setLoading(false);
   };
