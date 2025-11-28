@@ -7,6 +7,7 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Icon from '../assets/icons';
+import { auth } from '@/lib/firebase'
 
 export default function Signup() {
   const router = useRouter();
