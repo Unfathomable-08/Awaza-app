@@ -1,5 +1,5 @@
 // app/login.tsx (or wherever you have it)
-import { View, Text, StyleSheet, StatusBar, Pressable } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { theme } from '../constants/theme';
@@ -8,6 +8,7 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Icon from '../assets/icons';
+import { signIn } from '@/utils/auth';
 
 export default function Login() {
   const router = useRouter();
@@ -16,14 +17,49 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async () => {
-    // Add your login logic here
-    if (!emailRef.current || !passwordRef.current) {
-      alert('Please fill all fields');
+    const email = emailRef.current.trim();
+    const password = passwordRef.current;
+
+    if (!email || !password) {
+      Alert.alert('Login', 'Please fill in both email and password');
       return;
     }
+
     setLoading(true);
-    // ...your auth logic
-    setLoading(false);
+    
+    try {
+      await signIn(email, password);
+
+      router.replace('/'); 
+    } catch (error: any) {
+      console.error('Login error:', error);
+
+      if (error.message === 'EMAIL_NOT_VERIFIED') {
+        Alert.alert(
+          'Email Not Verified',
+          'Please check your email and click the verification link.\n\nAlso check your Spam/Junk folder.',
+          [
+            {
+              text: 'Resend Email',
+              onPress: () => router.replace('/check-email'),
+            },
+            { text: 'Cancel', style: 'cancel' },
+          ]
+        );
+      } else if (error.code === 'auth/wrong-password') {
+        Alert.alert('Login Failed', 'Incorrect password');
+      } else if (error.code === 'auth/user-not-found') {
+        Alert.alert('Login Failed', 'No account found with this email');
+      } else if (error.code === 'auth/invalid-email') {
+        Alert.alert('Login Failed', 'Please enter a valid email address');
+      } else if (error.code === 'auth/too-many-requests') {
+        Alert.alert('Too Many Attempts', 'Account temporarily disabled. Try again later or reset password.');
+      } else {
+        Alert.alert('Login Failed', error.message || 'Something went wrong');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

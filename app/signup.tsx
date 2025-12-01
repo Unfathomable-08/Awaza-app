@@ -7,23 +7,70 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Icon from '../assets/icons';
-import { auth } from '@/lib/firebase'
+import { signUp } from '@/utils/auth';
 
 export default function Signup() {
   const router = useRouter();
-  const emailRef = useRef('');
-  const passwordRef = useRef('');
+
+  const nameRef = useRef<string>('');
+  const emailRef = useRef<string>('');
+  const passwordRef = useRef<string>('');
+
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async () => {
-    // Add your login logic here
-    if (!emailRef.current || !passwordRef.current || !nameRef.current) {
+    const name = nameRef.current.trim();
+    const email = emailRef.current.trim();
+    const password = passwordRef.current;
+
+    // Validation
+    if (!name || !email || !password) {
       Alert.alert('Sign Up', 'Please fill all the fields!');
       return;
     }
+
+    if (password.length < 6) {
+      Alert.alert('Sign Up', 'Password must be at least 6 characters long!');
+      return;
+    }
+
     setLoading(true);
-    
-    setLoading(false);
+
+    try {
+      await signUp(email, password, name);
+
+      console.log("success!")
+
+      Alert.alert(
+        'Success!',
+        'Account created! Please check your email and click the verification link to activate your account.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/check-email'), 
+          },
+        ]
+      );
+
+    } catch (error: any) {
+      console.error('Signup error:', error);
+
+      let message = 'Something went wrong. Please try again.';
+
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'This email is already registered. Try logging in.';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Password is too weak.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email address.';
+      } else if (error.message) {
+        message = error.message;
+      }
+
+      Alert.alert('Sign Up Failed', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,19 +91,23 @@ export default function Signup() {
 
         {/* Form */}
         <View style={styles.form}>
-
+          {/* Name Field */}
           <Input
             icon={<Icon name="user" size={26} color={theme.colors.textLight} />}
             placeholder="Enter your name"
-            onChangeText={(text) => (emailRef.current = text)}
+            onChangeText={(text) => (nameRef.current = text)}
           />
-            
+
+          {/* Email Field */}
           <Input
             icon={<Icon name="mail" size={26} color={theme.colors.textLight} />}
             placeholder="Enter your email"
             keyboardType="email-address"
+            autoCapitalize="none"
             onChangeText={(text) => (emailRef.current = text)}
           />
+
+          {/* Password Field */}
           <Input
             icon={<Icon name="lock" size={26} color={theme.colors.textLight} />}
             placeholder="Enter your password"
@@ -65,14 +116,20 @@ export default function Signup() {
           />
 
           {/* Signup Button */}
-          <Button title="Signup" hasShadow={true} style={{ marginTop: 20 }} loading={loading} onPress={onSubmit} />
+          <Button
+            title="Signup"
+            hasShadow={true}
+            style={{ marginTop: 20 }}
+            loading={loading}
+            onPress={onSubmit}
+          />
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account? </Text>
           <Pressable onPress={() => router.push('/login')}>
-            <Text style={styles.signUpText}>Login</Text>
+            <Text style={[styles.footerText, styles.signUpText]}>Login</Text>
           </Pressable>
         </View>
       </View>

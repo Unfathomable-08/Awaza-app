@@ -9,13 +9,13 @@ let app: any = null;
 
 if (typeof window !== "undefined") {
   const firebaseConfig = {
-    apiKey: "AIzaSyCthc8vIp8fVvb9DcMKnDZH9zyHw0xYrZY",
-    authDomain: "vibely-social-media.firebaseapp.com",
-    projectId: "vibely-social-media",
-    storageBucket: "vibely-social-media.firebasestorage.app",
-    messagingSenderId: "767842087148",
-    appId: "1:767842087148:web:7d48091f75aea3276535c9",
-    measurementId: "G-ENEN116W9M",
+    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_SENDER_ID,
+    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.EXPO_PUBLIC_FIREBASE_MESUREMENT_ID,
   };
 
   if (!getApps().length) {
