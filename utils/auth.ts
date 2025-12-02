@@ -1,5 +1,5 @@
-import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios, { AxiosError } from "axios";
 
 // const API_BASE = "http://localhost:5000/api/auth";
 const API_BASE = "https://social-media-app-backend-khaki.vercel.app/api/auth";
@@ -66,6 +66,7 @@ const extractErrorMessage = (error: AxiosError<any> | any): string => {
 // Helper: save token
 const saveToken = async (token: string) => {
   try {
+    await AsyncStorage.removeItem(TOKEN_KEY);
     await AsyncStorage.setItem(TOKEN_KEY, token);
   } catch (err) {
     console.error("Failed to save auth token", err);
@@ -104,7 +105,7 @@ export const signUp = async (
     );
     console.log(res)
     
-    const token = res.headers["x-auth-token"] || res.data.token;
+    const token = res.data.token;
     if (token) await saveToken(token);
     
     return res.data.user;
@@ -165,7 +166,7 @@ export const signIn = async (login: string, password: string): Promise<User> => 
     });
     console.log(res)
 
-    const token = res.headers["x-auth-token"] || res.data.token;
+    const token = res.data.token;
     if (!token) {
       throw new AuthError("Login succeeded but no token received", "NO_TOKEN");
     }
