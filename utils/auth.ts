@@ -8,14 +8,7 @@ import {
   User,
   updateProfile,
 } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "firebase/firestore";
-
-const isUsernameUnique = async (username: string) => {
-  const q = query(collection(db, "vibely-users"), where("username", "==", username));
-  const snapshot = await getDocs(q);
-  return snapshot.empty;
-};
+import { auth } from "@/lib/firebase";
 
 // ============== Sign Up ==============
 export const signUp = async (
@@ -43,20 +36,6 @@ export const signUp = async (
     // For mobile (Expo), use your deep link, e.g.:
     // url: "exp://192.168.1.xxx:8081/--/finish-signup"
     // or better: use your published Expo URL or custom domain
-  });
-
-  // Create Firestore document 
-  await setDoc(doc(db, "vibely-users", user.uid), {
-    uid: user.uid,
-    name: displayName || "",
-    username: "",
-    avatar: "",
-    bio: "",
-    followers: [],
-    followings: [],
-    postsCount: 0,
-    lastOnline: serverTimestamp(),
-    createdAt: serverTimestamp(),
   });
 
   return user;
@@ -98,9 +77,4 @@ export const logOut = async () => {
   if (auth) {
     await signOut(auth);
   }
-};
-
-// ============== Update Profile ==============
-export const updateUserProfile = async (uid: string, data: any) => {
-  await setDoc(doc(db, "vibely-users", uid), data, { merge: true });
 };
