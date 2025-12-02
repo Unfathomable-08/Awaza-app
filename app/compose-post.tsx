@@ -1,4 +1,3 @@
-// app/create-post.tsx
 import { View, Text, StyleSheet, StatusBar, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -21,6 +20,7 @@ export default function CreatePost() {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Assumes user is authenticated via Firebase Auth
   const user = auth?.currentUser;
 
   const isOverLimit = text.length > MAX_CHARS;
@@ -42,6 +42,10 @@ export default function CreatePost() {
 
   const removeImage = () => setImage(null);
 
+  /**
+   * Reads the file, converts it to base64, and uploads it to ImgBB.
+   * NOTE: This method of using a base64 string in a multipart form is specific to ImgBB's API.
+   */
   const uploadImageToImgBB = async (uri: string): Promise<string> => {
     if (!IMGBB_API_KEY) {
       throw new Error('ImgBB API key is missing!');
@@ -55,6 +59,7 @@ export default function CreatePost() {
       encoding: FileSystem.EncodingType.Base64,
     });
 
+    // ImgBB requires the base64 string to be passed as 'image' field in multipart data
     const formData = new FormData();
     formData.append('image', base64);
 
@@ -72,29 +77,41 @@ export default function CreatePost() {
   const handlePost = async () => {
     if (isDisabled || !user) return;
 
+    if (!db) {
+        Alert.alert("Error", "Firebase not initialized. Restart the app.");
+        return;
+    }
+
     setLoading(true);
 
     try {
-    console.log('Posting...', { user: user.uid, text, image });
+      console.log('Posting...', { user: user.uid, text, image });
     
-    let imageUrl: string | null = null;
+      let imageUrl: string | null = null;
     
-    // Upload image if exists
-    if (image) {
-        imageUrl = await uploadImageToImgBB(image);
-    }
+      // 1. Upload image if exists
+      if (image) {
+          imageUrl = await uploadImageToImgBB(image);
+      }
     
-    console.log('Url...', imageUrl);
-    // Save post to Firestore
-    await addDoc(collection(db, 'users', user.uid, 'posts'), {
-        text: text.trim(),
-        imageUrl: imageUrl || '',
-        likeCount: 0,
-        commentCount: 0,
-        createdAt: serverTimestamp(),
-    });
+      console.log('Url...', imageUrl);
+      
+      // 2. Get the reference to the 'posts' collection
+      const postCollection = collection(db,  'posts');
+
+      console.log(postCollection)
+
+      // 3. Save post to Firestore using addDoc
+      await addDoc(postCollection, {
+          userId: user.uid,
+          text: text.trim(),
+          imageUrl: imageUrl || '',
+          likeCount: 0,
+          commentCount: 0,
+          createdAt: serverTimestamp(), // Best practice for server-generated timestamps
+      });
     
-    console.log('done...');
+      console.log('done...');
       Alert.alert('Posted!', 'Your vibe is now live!', [
         { text: 'Cool', onPress: () => router.replace('/') },
       ]);
