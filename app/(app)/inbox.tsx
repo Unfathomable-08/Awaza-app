@@ -1,4 +1,3 @@
-// app/dm.tsx  → Pure Realtime Database (NOT Firestore)
 import { auth, rtdb } from "@/lib/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import { onAuthStateChanged } from "firebase/auth";
