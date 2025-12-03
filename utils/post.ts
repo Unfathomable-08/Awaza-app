@@ -19,6 +19,7 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// ========== Create Post ==========
 export const createPost = async (data: {
   content: string;
   image: string;
@@ -33,14 +34,34 @@ export const createPost = async (data: {
 
     // Customize error message if axios error
     if (error.response) {
-      // Server responded with a status outside 2xx
       throw new Error(error.response.data.message || 'Server error occurred');
     } else if (error.request) {
-      // Request was made but no response
       throw new Error('No response from server. Check your connection.');
     } else {
-      // Something else happened
       throw new Error(error.message || 'Failed to create post');
     }
   }
 };
+
+
+// ========== Get All Posts (pagination) ==========
+export const getAllPosts = async ( page: number = 1, limit: number = 20 ) => {
+  try {
+    const res = await api.get(`/?page=${page}&limit=${limit}`);
+    console.log('Posts response:', res)
+    
+    return res.data;
+  }
+  catch (error: any) {
+    console.error('Error fetching posts:', error);
+
+    // Customize error message if axios error
+    if (error.response){
+      throw new Error(error.response.data.message || 'Server error occurred');
+    } else if (error.request) {
+      throw new Error('No response from server. Check your connection.');
+    } else {
+      throw new Error(error.message || 'Failed to fetch posts');
+    }
+  }
+}

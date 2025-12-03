@@ -7,10 +7,26 @@ import { useEffect, useState } from 'react';
 import Icon from '@/assets/icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/authContext';
+import { getAllPosts } from '@/utils/post';
 
 export default function Home() {
   const router = useRouter();
   const { user, isLoading } = useAuth()
+  const [posts, setPosts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await getAllPosts();
+        setPosts(res.posts);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
+    }
+    if (user) {
+      fetchPosts();
+    }
+  }, [user])
 
   // Sample stories data
   const stories = [
@@ -19,28 +35,6 @@ export default function Home() {
     { id: '3', user: 'Emma', image: require('@/assets/images/defaultUser.png') },
     { id: '4', user: 'John', image: require('@/assets/images/defaultUser.png') },
     { id: '5', user: 'Sara', image: require('@/assets/images/defaultUser.png') },
-  ];
-
-  // Sample posts
-  const posts = [
-    {
-      id: '1',
-      username: 'alex_travel',
-      avatar: require('@/assets/images/defaultUser.png'),
-      image: require('@/assets/images/defaultUser.png'),
-      likes: 234,
-      caption: 'Chasing sunsets in Bali',
-      timeAgo: '2h',
-    },
-    {
-      id: '2',
-      username: 'jessica.art',
-      avatar: require('@/assets/images/defaultUser.png'),
-      image: require('@/assets/images/defaultUser.png'),
-      likes: 892,
-      caption: 'New painting finished! What do you think? 🎨',
-      timeAgo: '5h',
-    },
   ];
 
   const renderStory = ({ item }: any) => (
