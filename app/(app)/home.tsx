@@ -1,10 +1,10 @@
 import { View, Text, StyleSheet, StatusBar, FlatList, Image, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import { theme } from '../../constants/theme';
-import { hp, wp } from '../../helpers/common';
+import ScreenWrapper from '@/components/ScreenWrapper';
+import { theme } from '@/constants/theme';
+import { hp, wp } from '@/helpers/common';
 import { useEffect, useState } from 'react';
-import Icon from '../../assets/icons';
+import Icon from '@/assets/icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/authContext';
 
@@ -14,11 +14,11 @@ export default function Home() {
 
   // Sample stories data
   const stories = [
-    { id: '1', user: 'You', image: require('../assets/images/defaultUser.png'), isYourStory: true },
-    { id: '2', user: 'Alex', image: require('../assets/images/defaultUser.png') },
-    { id: '3', user: 'Emma', image: require('../assets/images/defaultUser.png') },
-    { id: '4', user: 'John', image: require('../assets/images/defaultUser.png') },
-    { id: '5', user: 'Sara', image: require('../assets/images/defaultUser.png') },
+    { id: '1', user: 'You', image: require('@/assets/images/defaultUser.png'), isYourStory: true },
+    { id: '2', user: 'Alex', image: require('@/assets/images/defaultUser.png') },
+    { id: '3', user: 'Emma', image: require('@/assets/images/defaultUser.png') },
+    { id: '4', user: 'John', image: require('@/assets/images/defaultUser.png') },
+    { id: '5', user: 'Sara', image: require('@/assets/images/defaultUser.png') },
   ];
 
   // Sample posts
@@ -26,8 +26,8 @@ export default function Home() {
     {
       id: '1',
       username: 'alex_travel',
-      avatar: require('../assets/images/defaultUser.png'),
-      image: require('../assets/images/defaultUser.png'),
+      avatar: require('@/assets/images/defaultUser.png'),
+      image: require('@/assets/images/defaultUser.png'),
       likes: 234,
       caption: 'Chasing sunsets in Bali',
       timeAgo: '2h',
@@ -35,8 +35,8 @@ export default function Home() {
     {
       id: '2',
       username: 'jessica.art',
-      avatar: require('../assets/images/defaultUser.png'),
-      image: require('../assets/images/defaultUser.png'),
+      avatar: require('@/assets/images/defaultUser.png'),
+      image: require('@/assets/images/defaultUser.png'),
       likes: 892,
       caption: 'New painting finished! What do you think? 🎨',
       timeAgo: '5h',
@@ -154,7 +154,7 @@ export default function Home() {
       />
 
       {/* Floating Action Button */}
-      <Pressable style={styles.fab} onPress={() => router.push('/compose-post')}>
+      <Pressable style={styles.fab} onPress={() => router.push('/(app)/compose-post')}>
         <Icon name="plus" size={28} color="#fff" strokeWidth={2} />
       </Pressable>
     </ScreenWrapper>

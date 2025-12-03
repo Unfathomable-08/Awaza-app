@@ -12,10 +12,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import ScreenWrapper from "../components/ScreenWrapper";
-import { theme } from "../constants/theme";
-import { hp, wp } from "../helpers/common";
-import Icon from "../assets/icons";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import { theme } from "@/constants/theme";
+import { hp, wp } from "@/helpers/common";
+import Icon from "@/assets/icons";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
@@ -86,7 +86,7 @@ export default function CreatePost() {
       });
 
       Alert.alert("Success", "Your post is live!", [
-        { text: "Done", onPress: () => router.replace("/") },
+        { text: "Done", onPress: () => router.replace("/(app)/home") },
       ]);
     } catch (error: any) {
       console.error(error);

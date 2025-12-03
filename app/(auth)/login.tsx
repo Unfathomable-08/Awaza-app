@@ -30,7 +30,7 @@ export default function Login() {
     try {
       await signIn(email, password);
 
-      router.replace('/'); 
+      router.replace('/(app)/home'); 
     } catch (error: any) {
       console.error('Login error:', error);
 
@@ -41,7 +41,7 @@ export default function Login() {
           [
             {
               text: 'Resend Email',
-              onPress: () => router.replace('/check-email'),
+              onPress: () => router.replace('/(auth)/check-email'),
             },
             { text: 'Cancel', style: 'cancel' },
           ]
@@ -104,7 +104,7 @@ export default function Login() {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account? </Text>
-          <Pressable onPress={() => router.push('/signup')}>
+          <Pressable onPress={() => router.push('/(auth)/signup')}>
             <Text style={styles.signUpText}>Sign Up</Text>
           </Pressable>
         </View>

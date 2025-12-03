@@ -84,7 +84,7 @@ export default function VerifyEmail() {
     try {
       await verifyCode(code);
       Alert.alert('Success!', 'Email verified successfully!', [
-        { text: 'Continue', onPress: () => router.replace('/login') },
+        { text: 'Continue', onPress: () => router.replace('/(app)/home') },
       ]);
     } catch (error: any) {
       let message = 'Invalid or expired code.';

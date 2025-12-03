@@ -38,19 +38,7 @@ export default function Signup() {
 
     try {
       await signUp(email, password, name);
-
-      router.replace('/')
-
-      // Alert.alert(
-      //   'Success!',
-      //   'Account created! Please check your email and click the verification link to activate your account.',
-      //   [
-      //     {
-      //       text: 'OK',
-      //       onPress: () => router.replace('/check-email'), 
-      //     },
-      //   ]
-      // );
+      router.replace('/(app)/home')
 
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -128,7 +116,7 @@ export default function Signup() {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account? </Text>
-          <Pressable onPress={() => router.push('/login')}>
+          <Pressable onPress={() => router.push('/(auth)/login')}>
             <Text style={[styles.footerText, styles.signUpText]}>Login</Text>
           </Pressable>
         </View>

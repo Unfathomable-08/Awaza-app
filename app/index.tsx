@@ -1,8 +1,8 @@
-import { Stack, Redirect } from "expo-router";
+import { Redirect } from "expo-router";
 import { useAuth } from "@/contexts/authContext";
 import { ActivityIndicator, View } from "react-native";
 
-export default function AppLayout() {
+export default function Index() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -13,13 +13,5 @@ export default function AppLayout() {
     );
   }
 
-  if (!user) {
-    return <Redirect href="/welcome" />;
-  }
-
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="home" />
-    </Stack>
-  );
+  return <Redirect href={user ? "/(app)/home" : "/welcome"} />;
 }

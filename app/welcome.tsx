@@ -29,11 +29,11 @@ export default function Welcome(){
             <Button
                title='Getting Started'
                buttonStyle={{marginHorizontal: wp(3)}}
-               onPress={() => router.push('signup')}
+               onPress={() => router.push('/(auth)/signup')}
             />
             <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 15, gap: 8}}>
                <Text style={{fontSize: hp(1.6), fontWeight: theme.fonts.semibold, color: theme.colors.text}}>Already have an account?</Text>
-               <Pressable onPress={() => router.push('login')}>
+               <Pressable onPress={() => router.push('/(auth)/login')}>
                   <Text style={{fontSize: hp(1.6), fontWeight: theme.fonts.bold, color: theme.colors.primary}}>Login</Text>
                </Pressable>
             </View>
