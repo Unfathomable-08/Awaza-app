@@ -11,11 +11,11 @@ import {
   Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { theme } from '../constants/theme';
-import { hp, wp } from '../helpers/common';
-import Button from '../components/Button';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Icon from '../assets/icons';
+import { theme } from '../../constants/theme';
+import { hp, wp } from '../../helpers/common';
+import Button from '../../components/Button';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import Icon from '../../assets/icons';
 import { verifyCode, resendCode } from '@/utils/auth';
 import { Ionicons } from '@expo/vector-icons';
 

@@ -12,9 +12,9 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import ScreenWrapper from "../components/ScreenWrapper";
-import { theme } from "../constants/theme";
-import { hp, wp } from "../helpers/common";
+import ScreenWrapper from "../../components/ScreenWrapper";
+import { theme } from "../../constants/theme";
+import { hp, wp } from "../../helpers/common";
 import { auth } from "@/lib/firebase";
 import { rtdb } from "@/lib/firebase";
 import { ref, onValue, push, set, serverTimestamp } from "firebase/database";

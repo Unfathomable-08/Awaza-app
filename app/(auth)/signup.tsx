@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, StatusBar, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { theme } from '../constants/theme';
-import { hp, wp } from '../helpers/common';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Icon from '../assets/icons';
+import { theme } from '../../constants/theme';
+import { hp, wp } from '../../helpers/common';
+import Button from '../../components/Button';
+import Input from '../../components/Input';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import Icon from '../../assets/icons';
 import { signUp } from '@/utils/auth';
 
 export default function Signup() {
@@ -39,18 +39,18 @@ export default function Signup() {
     try {
       await signUp(email, password, name);
 
-      console.log("success!")
+      router.replace('/')
 
-      Alert.alert(
-        'Success!',
-        'Account created! Please check your email and click the verification link to activate your account.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/check-email'), 
-          },
-        ]
-      );
+      // Alert.alert(
+      //   'Success!',
+      //   'Account created! Please check your email and click the verification link to activate your account.',
+      //   [
+      //     {
+      //       text: 'OK',
+      //       onPress: () => router.replace('/check-email'), 
+      //     },
+      //   ]
+      // );
 
     } catch (error: any) {
       console.error('Signup error:', error);

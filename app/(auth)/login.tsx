@@ -2,12 +2,12 @@
 import { View, Text, StyleSheet, StatusBar, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { theme } from '../constants/theme';
-import { hp, wp } from '../helpers/common';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Icon from '../assets/icons';
+import { theme } from '../../constants/theme';
+import { hp, wp } from '../../helpers/common';
+import Button from '../../components/Button';
+import Input from '../../components/Input';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import Icon from '../../assets/icons';
 import { signIn } from '@/utils/auth';
 
 export default function Login() {

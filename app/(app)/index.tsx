@@ -1,30 +1,16 @@
-// app/index.tsx
-import { View, Text, StyleSheet, StatusBar, FlatList, Image, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, FlatList, Image, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import ScreenWrapper from '../components/ScreenWrapper';
-import { theme } from '../constants/theme';
-import { hp, wp } from '../helpers/common';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import { theme } from '../../constants/theme';
+import { hp, wp } from '../../helpers/common';
 import { useEffect, useState } from 'react';
-import Icon from '../assets/icons';
+import Icon from '../../assets/icons';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/contexts/authContext';
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.replace('/welcome');
-      } else {
-        setUser(currentUser);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const { user, isLoading } = useAuth()
 
   // Sample stories data
   const stories = [
@@ -116,7 +102,17 @@ export default function Home() {
     </View>
   );
 
-  if (!user) return null; // or loading spinner
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (!isLoading && !user){
+    router.push('/welcome')
+  }
 
   return (
     <ScreenWrapper bg="#fff">
