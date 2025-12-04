@@ -18,7 +18,6 @@ api.interceptors.request.use(async (config) => {
   }
   return config;
 });
-
 // ========== Create Post ==========
 export const createPost = async (data: {
   content: string;
@@ -45,22 +44,35 @@ export const createPost = async (data: {
 
 
 // ========== Get All Posts (pagination) ==========
-export const getAllPosts = async ( page: number = 1, limit: number = 20 ) => {
+export const getFeed = async (cursor?: string, limit: number = 25) => {
   try {
-    const res = await api.get(`/?page=${page}&limit=${limit}`);
-    
-    return res.data;
-  }
-  catch (error: any) {
-    console.error('Error fetching posts:', error);
+    const params = new URLSearchParams();
+    params.append("limit", limit.toString());
 
-    // Customize error message if axios error
-    if (error.response){
-      throw new Error(error.response.data.message || 'Server error occurred');
+    if (cursor) {
+      params.append("cursor", cursor);
+    }
+
+    const res = await api.get(`/feed?${params.toString()}`);
+
+    return {
+      posts: res.data.posts || [],
+      nextCursor: res.data.nextCursor || null,
+      hasMore: res.data.hasMore ?? res.data.posts.length === limit,
+      success: res.data.success
+    };
+  } catch (error: any) {
+    console.error('Error fetching feed:', error);
+
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Failed to load feed');
     } else if (error.request) {
-      throw new Error('No response from server. Check your connection.');
+      throw new Error('No response from server. Check your internet connection.');
     } else {
-      throw new Error(error.message || 'Failed to fetch posts');
+      throw new Error(error.message || 'An unexpected error occurred');
     }
   }
-}
+};
+
+// Helper function for initial feed load
+export const getFeedInitial = (limit = 25) => getFeed(undefined, limit);

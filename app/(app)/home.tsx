@@ -23,21 +23,53 @@ export default function Home() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [posts, setPosts] = useState<any[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await getAllPosts();
-        console.log(res.posts);
-        setPosts(res.posts);
-      } catch (error) {
-        console.error("Error fetching posts:", error);
+  const loadFeed = async (isLoadMore = false) => {
+    if (loading || (!isLoadMore && refreshing)) return;
+    if (isLoadMore && !hasMore) return;
+
+    if (isLoadMore) setLoading(true);
+    else setRefreshing(true);
+
+    try {
+      const data = await getFeed(isLoadMore ? cursor : undefined);
+
+      if (isLoadMore) {
+        setPosts(prev => [...prev, ...data.posts]);
+      } else {
+        setPosts(data.posts);
       }
-    };
-    if (user) {
-      fetchPosts();
+
+      setCursor(data.nextCursor);
+      setHasMore(data.hasMore);
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  // Initial load
+  useEffect(() => {
+    if (user) loadFeed();
   }, [user]);
+
+  // Load more
+  const onEndReached = () => {
+    if (hasMore && !loading) loadFeed(true);
+  };
+
+  // Pull to refresh
+  const onRefresh = () => {
+    setCursor(null);
+    setHasMore(true);
+    loadFeed();
+  };
 
   // Sample stories data
   const stories = [
@@ -102,6 +134,10 @@ export default function Home() {
         data={posts}
         keyExtractor={(item) => item._id}
         renderItem={renderPost}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
@@ -118,6 +154,7 @@ export default function Home() {
             </View>
           </>
         }
+        ListFooterComponent={loading && hasMore ? <ActivityIndicator style={{ margin: 20 }} /> : null}
       />
 
       {/* Floating Action Button */}
