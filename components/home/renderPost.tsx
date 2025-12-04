@@ -5,10 +5,9 @@ import Icon from "@/assets/icons";
 import { useRouter } from "expo-router";
 import { theme } from "@/constants/theme";
 import { likePost } from "@/utils/postActions";
-import { useAuth } from "@/contexts/authContext";
+import { User } from "@/utils/auth";
 
-export const renderPost = ({ item }: { item: any }) => {
-  const { user } = useAuth();
+export const RenderPost = ({ item, user, setPosts }: { \ }) => {
   const router = useRouter();
   const hasImage = item.image && item.image.trim() !== "";
 
@@ -72,7 +71,7 @@ export const renderPost = ({ item }: { item: any }) => {
         >
           {
             item.likes.includes(user?.id) ? 
-              <Icon name="heart" size={24} color={theme.colors.primary} />
+              <Ionicons name="heart" size={24} color={theme.colors.primary} />
             :
               <Ionicons name="heart-outline" size={24} color={theme.colors.text} />
           }

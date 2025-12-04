@@ -16,7 +16,7 @@ import {
   View,
   Alert
 } from "react-native";
-import { renderPost } from "@/components/home/renderPost";
+import { RenderPost } from "@/components/home/renderPost";
 import { renderStory } from "@/components/home/renderStory";
 
 export default function Home() {
@@ -128,7 +128,7 @@ export default function Home() {
       <FlatList
         data={posts}
         keyExtractor={(item) => item._id}
-        renderItem={renderPost}
+        renderItem={ ({ item }) => <RenderPost item={item} user={user} setPosts={setPosts} /> }
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
         refreshing={refreshing}
