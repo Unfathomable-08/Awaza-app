@@ -1,10 +1,12 @@
 import Icon from "@/assets/icons";
+import { Ionicons } from "@expo/vector-icons";
 import ScreenWrapper from "@/components/ui/ScreenWrapper";
 import { RenderComment } from "@/components/home/renderComment";
 import { theme } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
 import { getPost } from "@/utils/post";
 import { hp, wp } from "@/utils/common";
+import { likePost } from "@/utils/postActions";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -17,6 +19,7 @@ import {
   Alert,
 } from "react-native";
 import { styles } from "@/styles/post";
+import { timeAgo } from "@/utils/common";
 
 export default function PostDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -30,9 +33,8 @@ export default function PostDetail() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const postData = await getPost(id);
-      setPost(postData.post);
-      setComments(postData.comments);
+      const res = await getPost(id);
+      setPost(res.post);
     } catch (error: any) {
       Alert.alert("Error", error.message);
       console.error("Error fetching post:", error);
@@ -45,14 +47,24 @@ export default function PostDetail() {
     fetchData();
   }, [id]);
 
-  const timeAgo = (date: string) => {
-    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    return `${Math.floor(hours / 24)}d`;
+  const likePostFn = (id: any) => {
+    try {
+      setPost((p: any) => {
+        const alreadyLiked = p.likes.includes(user?.id);
+
+        return {
+          ...p,
+          likes: alreadyLiked
+            ? p.likes.filter((l: string) => l !== user?.id)
+            : [...p.likes, user?.id],
+          likesCount: alreadyLiked ? p.likesCount - 1 : p.likesCount + 1,
+        };
+      });
+
+      likePost(id);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   if (loading) {
@@ -74,7 +86,7 @@ export default function PostDetail() {
   return (
     <ScreenWrapper bg="#fff">
       {/* Header */}
-      <View style={styles.header}>
+      <View style={styles.postHeader}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrowLeft" size={24} color={theme.colors.text} />
         </Pressable>
@@ -85,13 +97,17 @@ export default function PostDetail() {
       <FlatList
         data={comments}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <RenderComment item={item} currentUserId={user?._id} />}
+        renderItem={({ item }) => (
+          <RenderComment item={item} currentUserId={user?.id} />
+        )}
         ListHeaderComponent={
           <View style={{ paddingBottom: hp(2) }}>
             {/* Main Post */}
             <View style={styles.postContainer}>
               <View style={styles.postHeader}>
-                <Pressable onPress={() => router.push(`/profile/${post.user._id}`)}>
+                <Pressable
+                  onPress={() => router.push(`/`)}
+                >
                   <Image
                     source={
                       post.user.image
@@ -102,15 +118,24 @@ export default function PostDetail() {
                   />
                 </Pressable>
                 <View style={{ flex: 1 }}>
-                  <Pressable onPress={() => router.push(`/profile/${post.user._id}`)}>
-                    <Text style={styles.postName}>{post.user.name}</Text>
+                  <Pressable
+                    onPress={() => router.push(`/`)}
+                  >
+                    <Text style={styles.postName}>{post?.user?.name}</Text>
                   </Pressable>
-                  <Text style={styles.postUsername}>@{post.user.name.toLowerCase()}</Text>
+                  {post.user?.name && (
+                    <Text style={styles.postname}>
+                      {post?.user?.name?.toLowerCase() || "Muhammad"}
+                    </Text>
+                  )}
+                  <Text style={styles.postUsername}>
+                    @{post.user?.username?.toLowerCase()}
+                  </Text>
                 </View>
                 <Text style={styles.postTime}>{timeAgo(post.createdAt)}</Text>
               </View>
 
-              <Text style={styles.postText}>{post.content}</Text>
+              <Text style={styles.postText}>{post?.content}</Text>
 
               {post.image && (
                 <Image source={{ uri: post.image }} style={styles.postImage} />
@@ -118,25 +143,42 @@ export default function PostDetail() {
 
               <View style={styles.postActions}>
                 <Pressable style={styles.actionButton}>
-                  <Icon name="messageCircle" size={22} color={theme.colors.textLight} />
-                  <Text style={styles.actionCount}>{post.commentsCount || 0}</Text>
-                </Pressable>
-                <Pressable style={styles.actionButton}>
                   <Icon
-                    name="heart"
+                    name="comment"
                     size={22}
-                    color={post.likes.includes(user?._id) ? "red" : theme.colors.textLight}
+                    color={theme.colors.textLight}
                   />
-                  <Text style={styles.actionCount}>{post.likes.length}</Text>
+                  <Text style={styles.actionCount}>
+                    {post.commentsCount || 0}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={styles.actionButton}
+                  onPress={() => likePostFn(post._id)}
+                >
+                  {post.likes.includes(user?.id) ? (
+                    <Ionicons
+                      name="heart"
+                      size={22}
+                      color={theme.colors.primary}
+                    />
+                  ) : (
+                    <Ionicons
+                      name="heart-outline"
+                      size={22}
+                      color={theme.colors.text}
+                    />
+                  )}
+                  <Text style={styles.actionCount}>{post.likesCount}</Text>
                 </Pressable>
                 <Pressable>
-                  <Icon name="share" size={22} color={theme.colors.textLight} />
+                  <Icon name="send" size={22} color={theme.colors.text} />
                 </Pressable>
               </View>
             </View>
 
             {/* Replies Title */}
-            {comments.length > 0 && (
+            {comments?.length > 0 && (
               <Text style={styles.repliesTitle}>Replies</Text>
             )}
           </View>
@@ -158,7 +200,7 @@ export default function PostDetail() {
           })
         }
       >
-        <Icon name="edit" size={28} color="#fff" />
+        <Icon name="comment" size={28} color="#fff" />
       </Pressable>
     </ScreenWrapper>
   );

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 import { theme } from '@/constants/theme';
 import { wp, hp } from '@/utils/common';
 
@@ -11,14 +11,14 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: theme.colors.text,
-  },
+  } as TextStyle,
   postImage: {
     width: "100%",
     height: undefined,
     aspectRatio: 1.5,
     borderRadius: 12,
     marginTop: 20,
-  },
+  } as ImageStyle,
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -26,20 +26,20 @@ export const styles = StyleSheet.create({
   },
   actionCount: {
     fontSize: 13,
-    color: theme.colors.textSecondary || "#888",
-  },
+    color: theme.colors.textLight || "#888",
+  } as TextStyle,
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: wp(5),
     paddingBottom: hp(1),
-  },
+  } as ViewStyle,
   logo: {
     fontSize: hp(4),
     fontWeight: theme.fonts.extraBold,
     color: theme.colors.primary,
-  },
+  } as TextStyle,
   storiesContainer: {
     paddingVertical: hp(2),
     borderBottomWidth: 0.5,
@@ -127,16 +127,15 @@ export const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: hp(6),
-    right: wp(6),
+    bottom: hp(3),
+    right: wp(5),
     backgroundColor: theme.colors.primary,
-    width: hp(7),
-    height: hp(7),
-    borderRadius: hp(3.5),
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
-    boxShadow: "0px 4px 5px rgba(0,0,0,0.3)",
   },
   avatarCircle: {
     backgroundColor: theme.colors.primary + '2F',
@@ -149,5 +148,5 @@ export const styles = StyleSheet.create({
   avatarCircleText: {
     textTransform: 'uppercase',
     fontWeight: theme.fonts.medium
-  }
+  } as TextStyle
 });

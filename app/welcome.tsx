@@ -3,13 +3,14 @@ import { Image, Pressable, StatusBar, StyleSheet, Text, View } from 'react-nativ
 import Button from '@/components//ui/Button';
 import { theme } from '@/constants/theme';
 import { hp, wp } from '@/utils/common';
+import React from 'react';
 
 export default function Welcome(){
    const router = useRouter();
    
    return (
       <View style={styles.container}>
-         <StatusBar style="dark" />
+         <StatusBar barStyle="light-content" />
         <View style={styles.container}>
             <Image
                source={require('@/assets/images/welcome.png')}

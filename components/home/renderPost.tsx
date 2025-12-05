@@ -1,11 +1,13 @@
 import { styles } from "@/styles/timeline";
-import { View, Image, Text, Pressable } from "react-native";
+import { View, Image, Text, Pressable, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Icon from "@/assets/icons";
 import { useRouter } from "expo-router";
 import { theme } from "@/constants/theme";
 import { likePost } from "@/utils/postActions";
 import { User } from "@/utils/auth";
+import { timeAgo } from "@/utils/common";
+import React from "react";
 
 export const RenderPost = ({
   item,
@@ -44,7 +46,10 @@ export const RenderPost = ({
   };
 
   return (
-    <View style={styles.postContainer}>
+    <TouchableOpacity 
+      style={styles.postContainer}
+      onPress={() => router.push(`/(app)/post/${item._id}`)}
+    >
       {/* Header */}
       <View style={styles.postHeader}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -67,7 +72,7 @@ export const RenderPost = ({
             <Text style={styles.postUsername}>
               {item.user?.username || "Unknown"}
             </Text>
-            <Text style={styles.postTime}>{item.createdAt}</Text>
+            <Text style={styles.postTime}>{timeAgo(item.createdAt)} ago</Text>
           </View>
         </View>
 
@@ -117,8 +122,8 @@ export const RenderPost = ({
           style={styles.actionButton}
           onPress={() => router.push(`/post/${item._id}`)}
         >
-          <Ionicons
-            name="chatbubble-outline"
+          <Icon
+            name="comment"
             size={22}
             color={theme.colors.text}
           />
@@ -126,13 +131,9 @@ export const RenderPost = ({
         </Pressable>
 
         <Pressable style={styles.actionButton}>
-          <Ionicons name="repeat" size={24} color={theme.colors.text} />
-        </Pressable>
-
-        <Pressable style={styles.actionButton}>
-          <Ionicons name="share-outline" size={24} color={theme.colors.text} />
+          <Icon name="send" size={24} color={theme.colors.text} />
         </Pressable>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };

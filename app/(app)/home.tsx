@@ -4,9 +4,8 @@ import { theme } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
 import { styles } from "@/styles/timeline";
 import { wp } from "@/utils/common";
-import { getFeed } from "@/utils/post";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -14,10 +13,10 @@ import {
   StatusBar,
   Text,
   View,
-  Alert
 } from "react-native";
 import { RenderPost } from "@/components/home/renderPost";
 import { renderStory } from "@/components/home/renderStory";
+import { loadFeed } from "@/utils/feed";
 
 export default function Home() {
   const router = useRouter();
@@ -28,42 +27,16 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadFeed = async (isLoadMore = false) => {
-    if (loading || (!isLoadMore && refreshing)) return;
-    if (isLoadMore && !hasMore) return;
-
-    if (isLoadMore) setLoading(true);
-    else setRefreshing(true);
-
-    try {
-      const data = await getFeed(isLoadMore ? cursor : undefined);
-
-      if (isLoadMore) {
-        setPosts(prev => [...prev, ...data.posts]);
-      } else {
-        setPosts(data.posts);
-      }
-
-      setCursor(data.nextCursor);
-      setHasMore(data.hasMore);
-    } catch (err: any) {
-      Alert.alert("Error", err.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
   // Load more
   const onEndReached = () => {
-    if (hasMore && !loading) loadFeed(true);
+    if (hasMore && !loading) loadFeed({isLoadMore: true, loading, setLoading, refreshing, setRefreshing, hasMore, setHasMore, cursor, setCursor, setPosts});
   };
 
   // Pull to refresh
   const onRefresh = () => {
     setCursor(null);
     setHasMore(true);
-    loadFeed();
+    loadFeed({isLoadMore: true, loading, setLoading, refreshing, setRefreshing, hasMore, setHasMore, cursor, setCursor, setPosts});
   };
 
   // Sample stories data
@@ -110,7 +83,7 @@ export default function Home() {
 
   return (
     <ScreenWrapper bg="#fff">
-      <StatusBar barStyle="dark" />
+      <StatusBar barStyle="light-content" />
 
       {/* Header */}
       <View style={styles.header}>
@@ -154,7 +127,7 @@ export default function Home() {
         style={styles.fab}
         onPress={() => router.push("/(app)/compose-post")}
       >
-        <Icon name="plus" size={28} color="#fff" strokeWidth={2} />
+        <Icon name="edit" size={28} color="#fff" strokeWidth={2} />
       </Pressable>
     </ScreenWrapper>
   );
