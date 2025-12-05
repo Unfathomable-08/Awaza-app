@@ -3,7 +3,7 @@ import ScreenWrapper from "@/components/ui/ScreenWrapper";
 import { RenderComment } from "@/components/home/renderComment";
 import { theme } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
-// import { getPostById, getComments } from "@/utils/post";
+import { getPost } from "@/utils/post";
 import { hp, wp } from "@/utils/common";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -30,14 +30,12 @@ export default function PostDetail() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [postData, commentsData] = await Promise.all([
-        getPostById(id),
-        getComments(id),
-      ]);
+      const postData = await getPost(id);
       setPost(postData.post);
-      setComments(commentsData.comments || []);
-    } catch (err: any) {
-      Alert.alert("Error", err.message || "Failed to load post");
+      setComments(postData.comments);
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+      console.error("Error fetching post:", error);
     } finally {
       setLoading(false);
     }

@@ -78,5 +78,22 @@ export const getFeed = async (cursor?: string, limit: number = 5) => {
 };
 
 
-// Helper function for initial feed load
-export const getFeedInitial = (limit = 25) => getFeed(undefined, limit);
+// ========== Get Single Post ==========
+export const getPost = async (postId: string) => {
+  try {
+    const res = await api.get(`/${postId}`);
+    console.log(res.data)
+    
+    return res.data;
+  } catch (error: any) {
+    console.error('Error fetching post:', error);
+
+    if (error.response){
+      throw new Error(error.response.data.message || 'Failed to load post');
+    } else if (error.request) {
+      throw new Error('No response from server. Check your internet connection.');
+    } else {
+      throw new Error(error.message || 'An unexpected error occurred');
+    }
+  }
+}
