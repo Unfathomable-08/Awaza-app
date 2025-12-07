@@ -87,12 +87,12 @@ export default function Home() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>Vibely</Text>
+        <Text style={styles.logo}>RedShift</Text>
         <View style={{ flexDirection: "row", gap: 16 }}>
           <Pressable>
             <Icon name="heart" size={28} color={theme.colors.text} />
           </Pressable>
-          <Pressable onPress={() => router.push("/notifications")}>
+          <Pressable onPress={() => router.push("/")}>
             <Icon name="send" size={28} color={theme.colors.text} />
           </Pressable>
         </View>

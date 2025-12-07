@@ -9,7 +9,7 @@ import axios from "axios";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -100,7 +100,7 @@ export default function CreatePost() {
 
   return (
     <ScreenWrapper bg="#fff">
-      <StatusBar barStyle="dark" />
+      <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -195,7 +195,6 @@ export default function CreatePost() {
                 color={theme.colors.primary}
                 strokeWidth={1.5}
               />
-              <Text style={styles.iconLabel}>Photo</Text>
             </Pressable>
 
             <View style={styles.charCounter}>
