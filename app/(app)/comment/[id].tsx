@@ -24,7 +24,7 @@ const MAX_CHARS = 380;
 const IMGBB_API_KEY = process.env.EXPO_PUBLIC_IMGBB_API_KEY;
 
 export default function WriteComment() {
-    const { id } = useLocalSearchParams();
+    const { id } = useLocalSearchParams(); // Id of postId + commentId
     const router = useRouter();
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(false);
@@ -40,13 +40,13 @@ export default function WriteComment() {
         setLoading(true);
 
         try {
-            
             await addComment(
-                Array.isArray(id) ? id[0] : id, //typescript err
+                id.split("_")[0],
                 text.trim(),
+                id.split("_")[1]
             );
             
-            Alert.alert("Success", "Your post is live!", [
+            Alert.alert("Success", "Your comment has been posted!", [
                 { text: "Done", onPress: () => router.replace("/(app)/home") },
             ]);
         } catch (error: any) {

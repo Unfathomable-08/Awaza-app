@@ -101,7 +101,7 @@ export default function PostDetail() {
         data={comments}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <RenderComment item={item} currentUserId={user?.id} />
+          <RenderComment item={item} currentUserId={user?.id} postId={post._id} />
         )}
         ListHeaderComponent={
           <View style={{ paddingBottom: hp(2) }}>

@@ -61,9 +61,11 @@ export const loadComments = async (postId: string) => {
 }
 
 // ========== Add Comment ==========
-export const addComment = async (postId: string, content: string) => {
+export const addComment = async (postId: string, content: string, commentId?: string ) => {
   try {
-    const res = await api.post(`/${postId}/comment`, { content });
+    const apiUrl = commentId ? `/${postId}/comments/${commentId}/reply` : `/${postId}/comments`
+    
+    const res = await api.post(apiUrl, { content });
     console.log(res.data)
 
     return res.data;

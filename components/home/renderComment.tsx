@@ -24,7 +24,7 @@ interface CommentProps {
   currentUserId?: string;
 }
 
-export const RenderComment = ({ item, currentUserId }: CommentProps) => {
+export const RenderComment = ({ item, postId, currentUserId }: CommentProps) => {
   const router = useRouter();
   const timeAgo = (date: string) => {
     const now = Date.now();
@@ -77,7 +77,10 @@ export const RenderComment = ({ item, currentUserId }: CommentProps) => {
               {item.likes?.length > 0 ? item.likes.length : ""}
             </Text>
           </Pressable>
-          <Pressable style={styles.actionButton}>
+          <Pressable 
+            style={styles.actionButton}
+            onPress={() => router.push(`/(app)/comment/${item._id}_${item._id}`)}
+          >
             <Icon name="comment" size={18} color={theme.colors.textLight} />
           </Pressable>
         </View>
