@@ -1,7 +1,7 @@
 import Icon from "@/assets/icons";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenWrapper from "@/components/ui/ScreenWrapper";
-import { RenderComment } from "@/components/home/renderComment";
+import { NestedComment } from "@/components/home/NestedComment";
 import { theme } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
 import { getPost } from "@/utils/post";
@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { styles } from "@/styles/post";
 import { timeAgo } from "@/utils/common";
+import { buildCommentTree } from "@/utils/buildCommentTree";
 
 export default function PostDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,15 +30,16 @@ export default function PostDetail() {
 
   const [post, setPost] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
+  const [commentTree, setCommentTree] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const postData = await getPost(id);
-      const commentsData = await loadComments(id)
+      const commentsData = await loadComments(id);
       setPost(postData.post);
-      setComments(commentsData.comments)
+      setComments(commentsData.comments);
     } catch (error: any) {
       Alert.alert("Error", error.message);
       console.error("Error fetching post:", error);
@@ -49,6 +51,12 @@ export default function PostDetail() {
   useEffect(() => {
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    if (comments.length > 0) {
+      setCommentTree(buildCommentTree(comments));
+    }
+  }, [comments]);
 
   const likePostFn = (id: any) => {
     try {
@@ -90,7 +98,10 @@ export default function PostDetail() {
     <ScreenWrapper bg="#fff">
       {/* Header */}
       <View style={styles.postHeader}>
-        <Pressable onPress={() => router.replace('/(app)/home')} style={styles.backButton}>
+        <Pressable
+          onPress={() => router.replace("/(app)/home")}
+          style={styles.backButton}
+        >
           <Icon name="arrowLeft" size={24} color={theme.colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Post</Text>
@@ -100,17 +111,15 @@ export default function PostDetail() {
       <FlatList
         data={comments}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <RenderComment item={item} currentUserId={user?.id} postId={post._id} />
+        renderItem={()=>(
+          <View></View>
         )}
         ListHeaderComponent={
           <View style={{ paddingBottom: hp(2) }}>
             {/* Main Post */}
             <View>
               <View style={styles.postHeader}>
-                <Pressable
-                  onPress={() => router.push(`/`)}
-                >
+                <Pressable onPress={() => router.push(`/`)}>
                   <Image
                     source={
                       post.user.image
@@ -121,9 +130,7 @@ export default function PostDetail() {
                   />
                 </Pressable>
                 <View style={{ flex: 1 }}>
-                  <Pressable
-                    onPress={() => router.push(`/`)}
-                  >
+                  <Pressable onPress={() => router.push(`/`)}>
                     <Text style={styles.postName}>{post?.user?.name}</Text>
                   </Pressable>
                   {post.user?.name && (
@@ -145,7 +152,10 @@ export default function PostDetail() {
               )}
 
               <View style={styles.postActions}>
-                <Pressable onPress={() => router.push(`/(app)/comment/${post._id}`)} style={styles.actionButton}>
+                <Pressable
+                  onPress={() => router.push(`/(app)/comment/${post._id}`)}
+                  style={styles.actionButton}
+                >
                   <Icon
                     name="comment"
                     size={22}
@@ -181,13 +191,26 @@ export default function PostDetail() {
             </View>
 
             {/* Replies Title */}
-            {comments?.length > 0 && (
+            {commentTree?.length > 0 && (
               <Text style={styles.repliesTitle}>Replies</Text>
             )}
           </View>
         }
         ListEmptyComponent={
           <Text style={styles.noComments}>No replies yet. Be the first!</Text>
+        }
+        ListFooterComponent={
+          <View>
+            {commentTree.map((rootComment) => (
+              <NestedComment
+                key={rootComment._id}
+                comment={rootComment}
+                postId={post._id}
+                currentUserId={user?.id}
+                depth={0}
+              />
+            ))}
+          </View>
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: hp(12) }}

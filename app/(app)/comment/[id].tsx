@@ -21,7 +21,6 @@ import {
 } from "react-native";
 
 const MAX_CHARS = 380;
-const IMGBB_API_KEY = process.env.EXPO_PUBLIC_IMGBB_API_KEY;
 
 export default function WriteComment() {
     const { id } = useLocalSearchParams(); // Id of postId + commentId
@@ -38,12 +37,15 @@ export default function WriteComment() {
         if (isDisabled) return;
         
         setLoading(true);
+        const idString = Array.isArray(id) ? id.join("") : id ?? "";
 
         try {
+            const parts = idString.split("_");
+
             await addComment(
-                id.split("_")[0],
+                parts[0],
                 text.trim(),
-                id.split("_")[1]
+                parts[1]
             );
             
             Alert.alert("Success", "Your comment has been posted!", [
