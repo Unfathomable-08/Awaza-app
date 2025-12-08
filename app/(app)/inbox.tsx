@@ -1,271 +1,98 @@
-import { auth, rtdb } from "@/lib/firebase";
-import { Ionicons } from "@expo/vector-icons";
-import { onAuthStateChanged } from "firebase/auth";
-import { onValue, push, ref, set } from "firebase/database";
-import React, { useEffect, useRef, useState } from "react";
-import {
-    ActivityIndicator,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View
-} from "react-native";
+import Icon from "@/assets/icons";
 import ScreenWrapper from "@/components/ui/ScreenWrapper";
 import { theme } from "@/constants/theme";
+import { useAuth } from "@/contexts/authContext";
 import { hp, wp } from "@/utils/common";
+import { useRouter } from "expo-router";
+import React from "react";
+import { FlatList, Image, Pressable, Text, View } from "react-native";
+import { styles } from "@/styles/inbox";
+import { timeAgo } from "@/utils/common";
 
-// Fixed convo path — both users see the same chat
-const CONVO_PATH = "chats/m8374527_muhammad124711";
-
-export default function DirectChat() {
-  const [messages, setMessages] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const flatListRef = useRef<FlatList>(null);
-
-  const [authLoading, setAuthLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(auth?.currentUser || null);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      setAuthLoading(false);
-      setCurrentUser(user);
-      console.log(auth?.currentUser);
-    });
-
-    return unsub;
-  }, []);
-
-  const otherUserName =
-    currentUser?.email === "m8374527@gmail.com" ? "Muhammad" : "MD";
-
-  useEffect(() => {
-    if (!currentUser) {
-      setLoading(false);
-      return;
-    }
-
-    // Only allow the two test accounts
-    if (
-      !["m8374527@gmail.com", "muhammad124711@gmail.com"].includes(
-        currentUser.email!
-      )
-    ) {
-      setLoading(false);
-      return;
-    }
-
-    const messagesRef = ref(rtdb, CONVO_PATH);
-
-    const unsubscribe = onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data) {
-        const loadedMessages = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-        }));
-
-        loadedMessages.sort((a, b) => a.createdAt - b.createdAt);
-
-        setMessages(loadedMessages);
-      } else {
-        setMessages([]);
-      }
-
-      setLoading(false);
-
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    });
-
-    return () => unsubscribe();
-  }, [currentUser]); // ← FIXED
-
-  const sendMessage = () => {
-    if (!newMessage.trim() || !currentUser) return;
-
-    const text = newMessage.trim();
-    setNewMessage("");
-
-    const messagesRef = ref(rtdb, CONVO_PATH);
-    const newMsgRef = push(messagesRef);
-
-    set(newMsgRef, {
-      text,
-      userId: currentUser.uid,
-      userEmail: currentUser.email,
-      createdAt: Date.now(), // ← best for Realtime DB
-    });
-  };
-
-  if (authLoading) {
-    return (
-      <ScreenWrapper bg="#fff">
-        <ActivityIndicator
-          size="large"
-          color={theme.colors.primary}
-          style={{ marginTop: 100 }}
-        />
-      </ScreenWrapper>
-    );
-  }
-
-  if (!currentUser) {
-    return (
-      <ScreenWrapper>
-        <Text style={{ textAlign: "center", marginTop: 50 }}>
-          Log in as m8374527@gmail.com or muhammad124711@gmail.com
-        </Text>
-      </ScreenWrapper>
-    );
-  }
-
-  if (loading) {
-    return (
-      <ScreenWrapper bg="#fff">
-        <ActivityIndicator
-          size="large"
-          color={theme.colors.primary}
-          style={{ marginTop: 100 }}
-        />
-      </ScreenWrapper>
-    );
-  }
+export default function Inbox(){
+   const router = useRouter();
+   const { user } = useAuth();
+   const conversations = [
+     {
+        id: "1",
+        user: {
+           id: "2",
+           name: "Muhammad",
+           username: "muhammad124711",
+           image: "https://i.pravatar.cc/150?img=1"
+        },
+        lastMessage: "Hey, how are you doing?",
+        lastMessageAt: "2024-07-20T12:00:00Z",
+     },
+     {
+        id: "2",
+        user: {
+           id: "3",
+           name: "MD",
+           username: "m8374527",
+           image: "https://i.pravatar.cc/150?img=2"
+        },
+        lastMessage: "I'm good, thanks! How about you?",
+        lastMessageAt: "2024-07-20T12:05:00Z"
+     },
+     {
+        id: "3",
+        user: {
+           id: "4",
+           name: "John Doe",
+           username: "johndoe",
+           image: "https://i.pravatar.cc/150?img=3"
+        },
+        lastMessage: "Let's catch up soon!",
+        lastMessageAt: "2024-07-20T12:10:00Z"
+     }
+   ]
 
   return (
     <ScreenWrapper bg="#fff">
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.avatarPlaceholder}>
-          <Text style={{ fontSize: 20 }}>{otherUserName[0]}</Text>
-        </View>
-        <Text style={styles.username}>{otherUserName}</Text>
+        <Text style={styles.headerTitle}>Messages</Text>
+        <Pressable onPress={() => router.push("/(app)/inbox2")}>
+          <Icon name="chat" size={24} color={theme.colors.text} />
+        </Pressable>
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={90}
-      >
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.bubble,
-                item.userEmail === currentUser.email
-                  ? styles.myBubble
-                  : styles.theirBubble,
-              ]}
+      <FlatList
+        data={conversations}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <Pressable
+            style={styles.conversationItem}
+            onPress={() => router.push(`/(app)/inbox/${item.id}`)}
             >
-              <Text
-                style={[
-                  styles.messageText,
-                  item.userEmail === currentUser.email && { color: "white" },
-                ]}
-              >
-                {item.text}
+            <Image
+              source={{ uri: item.user.image }}
+              style={styles.conversationAvatar}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.conversationName}>{item.user.name}</Text>
+              <Text style={styles.conversationLastMessage}>
+                {item.lastMessage}
+              </Text>
+              <Text style={styles.conversationTime}>
+                {timeAgo(item.lastMessageAt)}
               </Text>
             </View>
-          )}
-          contentContainerStyle={{ padding: wp(4), paddingBottom: hp(10) }}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
-        />
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Type a message..."
-            placeholderTextColor="#999"
-            multiline
-            onSubmitEditing={sendMessage}
-          />
-          <Pressable onPress={sendMessage} style={styles.sendBtn}>
-            <Ionicons name="send" size={24} color="white" />
+            {/* Unread dot */}
+            {item.id === "1" && (
+              <View style={styles.unreadDot} />
+            )}
+            {/* Unread count */}
+            <View style={styles.unreadCount}>
+              <Text style={styles.unreadCountText}>2</Text>
+            </View>
           </Pressable>
-        </View>
-      </KeyboardAvoidingView>
-    </ScreenWrapper>
-  );
+        ))}
+      />
+      {/* New Message Button */}
+      <Pressable style={styles.newMessageBtn}>
+        <Icon name="edit" size={24} color="#fff" />
+      </Pressable>
+  )
 }
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: wp(4),
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    backgroundColor: "#fff",
-  },
-  avatarPlaceholder: {
-    width: hp(6),
-    height: hp(6),
-    borderRadius: hp(3),
-    backgroundColor: theme.colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: wp(3),
-  },
-  username: {
-    fontSize: hp(2.6),
-    fontWeight: "bold",
-    color: theme.colors.text,
-  },
-  bubble: {
-    maxWidth: "80%",
-    padding: wp(4),
-    borderRadius: 20,
-    marginVertical: hp(0.8),
-  },
-  myBubble: {
-    alignSelf: "flex-end",
-    backgroundColor: theme.colors.primary,
-  },
-  theirBubble: {
-    alignSelf: "flex-start",
-    backgroundColor: "#f0f0f0",
-  },
-  messageText: {
-    fontSize: hp(2),
-    color: "#000",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    padding: wp(4),
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    alignItems: "flex-end",
-  },
-  input: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 25,
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(1.8),
-    marginRight: wp(3),
-    fontSize: hp(2),
-    maxHeight: hp(15),
-  },
-  sendBtn: {
-    backgroundColor: theme.colors.primary,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
