@@ -13,15 +13,16 @@ import {
   Image,
   StatusBar,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import { styles } from "@/styles/inbox";
-import { LinearGradient } from "expo-linear-gradient";
 
 export default function Inbox() {
   const router = useRouter();
   const { user } = useAuth();
-
-  // Mock messages data (replace with real data later)
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Mock messages data
   const messages = [
     {
       id: "1",
@@ -70,13 +71,20 @@ export default function Inbox() {
     },
   ];
 
+  // Filter messages based on search
+  const filteredMessages = messages.filter((msg) =>
+    msg.user.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const renderMessageItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.messageItem}
-      // onPress={() => router.push({
-      //   pathname: "/(app)/chat",
-      //   params: { userId: item.id, username: item.user }
-      // })}
+      onPress={() =>
+        router.push({
+          pathname: "/(app)/chat",
+          params: { userId: item.id, username: item.user },
+        })
+      }
       activeOpacity={0.7}
     >
       <View style={styles.avatarContainer}>
@@ -96,7 +104,9 @@ export default function Inbox() {
 
       {item.unread > 0 && (
         <View style={styles.unreadBadge}>
-          <Text style={styles.unreadText}>{item.unread > 9 ? "9+" : item.unread}</Text>
+          <Text style={styles.unreadText}>
+            {item.unread > 9 ? "9+" : item.unread}
+          </Text>
         </View>
       )}
     </TouchableOpacity>
@@ -106,28 +116,46 @@ export default function Inbox() {
     <ScreenWrapper bg="#fff">
       <StatusBar barStyle="dark-content" />
 
-      {/* Gradient Header */}
-      <View
-        style={styles.header}
-      >
+      {/* Header with Search Bar */}
+      <View style={styles.header}>
         <Text style={styles.headerTitle}>Messages</Text>
-        <Pressable style={styles.searchButton}>
-          <Icon name="search" size={24} color="#fff" />
-        </Pressable>
+
+        {/* Instagram-style Search Bar */}
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color="#888" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor="#aaa"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery("")} style={styles.clearButton}>
+              <Icon name="x" size={18} color="#888" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       {/* Messages List */}
       <FlatList
-        data={messages}
+        data={filteredMessages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessageItem}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: hp(2) }}
+        contentContainerStyle={{ paddingTop: hp(1) }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="message-circle" size={80} color="#ccc" />
-            <Text style={styles.emptyText}>No messages yet</Text>
-            <Text style={styles.emptySubtext}>Start a conversation!</Text>
+            <Icon name="message-circle" size={80} color="#ddd" />
+            <Text style={styles.emptyText}>
+              {searchQuery ? "No results found" : "No messages yet"}
+            </Text>
+            <Text style={styles.emptySubtext}>
+              {searchQuery ? `Try searching for "${searchQuery}"` : "Start a conversation!"}
+            </Text>
           </View>
         }
       />
@@ -135,7 +163,7 @@ export default function Inbox() {
       {/* Floating New Message Button */}
       <Pressable
         style={styles.fab}
-        onPress={() => router.push("/")}
+        onPress={() => router.push("/(app)/new-message")}
       >
         <Icon name="edit" size={28} color="#fff" strokeWidth={2.5} />
       </Pressable>
