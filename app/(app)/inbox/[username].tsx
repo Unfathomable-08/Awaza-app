@@ -37,7 +37,9 @@ export default function DirectChat() {
 
     const fetchData = async () => {
       const usernameStr = Array.isArray(username) ? username[0] : username;
-      const results = await searchUsers(usernameStr.split("_")[1]);
+      const parts = usernameStr.split("_");
+      const other = parts[0] != user?.username ? parts[0] : parts[1];
+      const results = await searchUsers(other);
       if (results[0]) setOtherUser(results[0]);
     };
 
