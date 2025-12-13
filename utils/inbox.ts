@@ -37,3 +37,25 @@ export const getChatsMetadata = async () => {
     }
   }
 }
+
+export const createChatsMetadata = async (users: string[]) => {
+  try {
+    const res = await api.post(`/chats`, {
+        users: users
+    });
+    console.log(res)
+
+    return res.data.chats;
+  }
+  catch (error: any){
+    console.error("Error creating chat metadata:", error);
+
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Failed to load feed');
+    } else if (error.request) {
+      throw new Error('No response from server. Check your internet connection.');
+    } else {
+      throw new Error(error.message || 'An unexpected error occurred');
+    }
+  }
+}

@@ -14,16 +14,18 @@ import {
 import ScreenWrapper from "@/components/ui/ScreenWrapper";
 import { useLocalSearchParams, router } from "expo-router";
 import { useAuth } from "@/contexts/authContext";
-import { searchUserByID } from "@/utils/search";
-import { styles } from "@/styles/chat";
-import { theme } from "@/constants/theme";
 import { wp, hp } from "@/utils/common";
 import { timeAgo } from "@/utils/common";
+import { searchUserByID } from "@/utils/search";
+import { createChatsMetadata } from "@/utils/inbox";
+import { styles } from "@/styles/chat";
+import { theme } from "@/constants/theme";
 
 export default function DirectChat() {
   const { username } = useLocalSearchParams();
   const { user } = useAuth();
   const [otherUser, setOtherUser] = useState({
+    _id: "",
     username: "",
     name: "",
     avatar: "",
@@ -38,13 +40,23 @@ export default function DirectChat() {
     const fetchData = async () => {
       const usernameStr = Array.isArray(username) ? username[0] : username;
       const parts = usernameStr.split("_");
-      const other = parts[0] != user?.username ? parts[0] : parts[1];
+      const other = parts[0] != user?.username ? parts[1] : parts[0];
       const results = await searchUserByID(other);
       if (results) setOtherUser(results);
     };
 
     fetchData();
   }, [username]);
+
+  useEffect(() => {
+    if (!otherUser._id || otherUser._id == "") return;
+
+    const fetchData = async () => {
+      const res = await createChatsMetadata([otherUser._id]);
+    };
+
+    fetchData();
+  }, [otherUser]);
 
   useEffect(() => {
     if (!user || !rtdb) return;
@@ -63,7 +75,10 @@ export default function DirectChat() {
         setMessages([]);
       }
 
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
+      setTimeout(
+        () => flatListRef.current?.scrollToEnd({ animated: false }),
+        100
+      );
     });
 
     return () => unsubscribe();
@@ -90,13 +105,25 @@ export default function DirectChat() {
     const isMine = item.userEmail === user?.email;
 
     return (
-      <View style={[styles.messageContainer, isMine ? styles.myMessage : styles.theirMessage]}>
-        <View style={[styles.bubble, isMine ? styles.myBubble : styles.theirBubble]}>
-          <Text style={[styles.messageText, isMine ? styles.myText : styles.theirText]}>
+      <View
+        style={[
+          styles.messageContainer,
+          isMine ? styles.myMessage : styles.theirMessage,
+        ]}
+      >
+        <View
+          style={[styles.bubble, isMine ? styles.myBubble : styles.theirBubble]}
+        >
+          <Text
+            style={[
+              styles.messageText,
+              isMine ? styles.myText : styles.theirText,
+            ]}
+          >
             {item.text}
           </Text>
         </View>
-        <View style={{flexDirection: 'row-reverse', gap: 6}}>
+        <View style={{ flexDirection: "row-reverse", gap: 6 }}>
           {isMine && (
             <Ionicons
               name="checkmark-outline"
@@ -105,9 +132,7 @@ export default function DirectChat() {
               style={styles.deliveredIcon}
             />
           )}
-          <Text style={styles.timestamp}>
-            {timeAgo(item.createdAt)}
-          </Text>
+          <Text style={styles.timestamp}>{timeAgo(item.createdAt)}</Text>
         </View>
       </View>
     );
@@ -147,7 +172,9 @@ export default function DirectChat() {
           keyExtractor={(item) => item.id}
           renderItem={renderMessage}
           contentContainerStyle={{ padding: wp(4), paddingBottom: hp(2) }}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
           showsVerticalScrollIndicator={false}
         />
 
@@ -166,7 +193,10 @@ export default function DirectChat() {
           <Pressable
             onPress={sendMessage}
             disabled={!newMessage.trim()}
-            style={[styles.sendBtn, !newMessage.trim() && styles.sendBtnDisabled]}
+            style={[
+              styles.sendBtn,
+              !newMessage.trim() && styles.sendBtnDisabled,
+            ]}
           >
             <Ionicons name="send" size={24} color="white" />
           </Pressable>

@@ -217,7 +217,7 @@ const renderMessageItem = ({ item, currentUserId }: MessageItemProps) => {
         data={isSearching ? searchResults : messages}
         keyExtractor={(item: any) => item.id}
         renderItem={({ item }) =>
-          isSearching ? renderSearchUser({ item }) : renderMessageItem({ item })
+          isSearching ? renderSearchUser({ item }) : renderMessageItem({ item, currentUserId: user?.id || "" })
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: hp(1) }}
