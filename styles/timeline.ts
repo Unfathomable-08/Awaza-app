@@ -1,6 +1,6 @@
-import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 import { theme } from '@/constants/theme';
-import { wp, hp } from '@/utils/common';
+import { hp, wp } from '@/utils/common';
+import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 export const styles = StyleSheet.create({
   postBody: {
