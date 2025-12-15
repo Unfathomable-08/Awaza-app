@@ -1,11 +1,39 @@
-import { theme } from '@/constants/theme';
-import { hp, wp } from '@/utils/common';
-import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { theme } from "@/constants/theme";
+import { hp, wp } from "@/utils/common";
+import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from "react-native";
 
 export const styles = StyleSheet.create({
   postBody: {
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  feedTopSection: {
+    paddingHorizontal: wp(5),
+    paddingTop: 6,
+    paddingBottom: 28,
+    backgroundColor: "#fff",
+  },
+  chipsContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  chip: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 30,
+  },
+  chipActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: theme.colors.textLight,
+  },
+  chipTextActive: {
+    color: "#fff",
+    fontWeight: "700",
   },
   postText: {
     fontSize: 15,
@@ -138,15 +166,15 @@ export const styles = StyleSheet.create({
     elevation: 8,
   },
   avatarCircle: {
-    backgroundColor: theme.colors.primary + '2F',
+    backgroundColor: theme.colors.primary + "2F",
     width: 32,
     height: 32,
-    borderRadius: '100%',
-    justifyContent: 'center',
-    alignItems: 'center'
+    borderRadius: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarCircleText: {
-    textTransform: 'uppercase',
-    fontWeight: theme.fonts.medium
-  } as TextStyle
+    textTransform: "uppercase",
+    fontWeight: theme.fonts.medium,
+  } as TextStyle,
 });

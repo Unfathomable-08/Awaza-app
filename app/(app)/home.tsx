@@ -29,14 +29,37 @@ export default function Home() {
 
   // Load more
   const onEndReached = () => {
-    if (hasMore && !loading) loadFeed({isLoadMore: true, loading, setLoading, refreshing, setRefreshing, hasMore, setHasMore, cursor, setCursor, setPosts});
+    if (hasMore && !loading)
+      loadFeed({
+        isLoadMore: true,
+        loading,
+        setLoading,
+        refreshing,
+        setRefreshing,
+        hasMore,
+        setHasMore,
+        cursor,
+        setCursor,
+        setPosts,
+      });
   };
 
   // Pull to refresh
   const onRefresh = () => {
     setCursor(null);
     setHasMore(true);
-    loadFeed({isLoadMore: true, loading, setLoading, refreshing, setRefreshing, hasMore, setHasMore, cursor, setCursor, setPosts});
+    loadFeed({
+      isLoadMore: true,
+      loading,
+      setLoading,
+      refreshing,
+      setRefreshing,
+      hasMore,
+      setHasMore,
+      cursor,
+      setCursor,
+      setPosts,
+    });
   };
 
   // Sample stories data
@@ -89,7 +112,7 @@ export default function Home() {
       <View style={styles.header}>
         <Text style={styles.logo}>Awaza</Text>
         <View style={{ flexDirection: "row", gap: 16 }}>
-          <Pressable onPress={() => router.push('/(app)/account-setting')}>
+          <Pressable onPress={() => router.push("/(app)/account-setting")}>
             <Icon name="user" size={28} color={theme.colors.text} />
           </Pressable>
           <Pressable onPress={() => router.push("/(app)/inbox")}>
@@ -101,25 +124,49 @@ export default function Home() {
       <FlatList
         data={posts}
         keyExtractor={(item) => item._id}
-        renderItem={ ({ item }) => <RenderPost item={item} user={user} setPosts={setPosts} /> }
+        renderItem={({ item }) => (
+          <RenderPost item={item} user={user} setPosts={setPosts} />
+        )}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
         refreshing={refreshing}
         onRefresh={onRefresh}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-            <View style={styles.storiesContainer}>
-              <FlatList
-                data={stories}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item._id}
-                renderItem={renderStory}
-                contentContainerStyle={{ paddingHorizontal: wp(4) }}
-              />
+          <View style={styles.feedTopSection}>
+            <View style={styles.chipsContainer}>
+              <Pressable style={[styles.chip, styles.chipActive]}>
+                <Text style={styles.chipTextActive}>All Posts</Text>
+              </Pressable>
+              <Pressable style={styles.chip}>
+                <Text style={styles.chipText}>Following</Text>
+              </Pressable>
+              <Pressable style={styles.chip}>
+                <Text style={styles.chipText}>Trending</Text>
+              </Pressable>
             </View>
+          </View>
         }
-        ListFooterComponent={loading && hasMore ? <ActivityIndicator style={{ margin: 20 }} color={theme.colors.primary} /> : null}
+        // ListHeaderComponent={
+        //     <View style={styles.storiesContainer}>
+        //       <FlatList
+        //         data={stories}
+        //         horizontal
+        //         showsHorizontalScrollIndicator={false}
+        //         keyExtractor={(item) => item._id}
+        //         renderItem={renderStory}
+        //         contentContainerStyle={{ paddingHorizontal: wp(4) }}
+        //       />
+        //     </View>
+        // }
+        ListFooterComponent={
+          loading && hasMore ? (
+            <ActivityIndicator
+              style={{ margin: 20 }}
+              color={theme.colors.primary}
+            />
+          ) : null
+        }
       />
 
       {/* Floating Action Button */}
