@@ -22,10 +22,14 @@ export default function AppLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="home" />
+      <Stack.Screen name="inbox" />
       <Stack.Screen name="compose-post" />
+      <Stack.Screen name="account-setting" />
+      <Stack.Screen name="update-profile" />
+      <Stack.Screen name="update-username" />
       <Stack.Screen name="post/[id]" />
       <Stack.Screen name="comment/[id]" />
-      {/* <Stack.Screen name="inbox" /> */}
+      <Stack.Screen name="inbox/[username]" />
     </Stack>
   );
 }

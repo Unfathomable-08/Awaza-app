@@ -6,8 +6,8 @@ import { theme } from '@/constants/theme';
 import { signUp } from '@/utils/auth';
 import { hp, wp } from '@/utils/common';
 import { useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
-import { Alert, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Alert, Pressable, StatusBar, StyleSheet, Text, TextStyle, View } from 'react-native';
 
 export default function Signup() {
   const router = useRouter();
@@ -63,10 +63,10 @@ export default function Signup() {
 
   return (
     <ScreenWrapper bg="white">
-      <StatusBar barStyle="dark" />
+      <StatusBar barStyle="light-content" />
 
       {/* Back Button */}
-      <Pressable onPress={() => router.back()} style={styles.backButton}>
+      <Pressable onPress={() => router.back()}>
         <Icon name="arrowLeft" size={26} color={theme.colors.text} strokeWidth={2.5} />
       </Pressable>
 
@@ -83,7 +83,7 @@ export default function Signup() {
           <Input
             icon={<Icon name="user" size={26} color={theme.colors.textLight} />}
             placeholder="Create a username"
-            onChangeText={(text) => (nameRef.current = text)}
+            onChangeText={(text: string) => (nameRef.current = text)}
           />
 
           {/* Email Field */}
@@ -92,7 +92,7 @@ export default function Signup() {
             placeholder="Enter your email"
             keyboardType="email-address"
             autoCapitalize="none"
-            onChangeText={(text) => (emailRef.current = text)}
+            onChangeText={(text: string) => (emailRef.current = text)}
           />
 
           {/* Password Field */}
@@ -100,14 +100,14 @@ export default function Signup() {
             icon={<Icon name="lock" size={26} color={theme.colors.textLight} />}
             placeholder="Enter your password"
             secureTextEntry
-            onChangeText={(text) => (passwordRef.current = text)}
+            onChangeText={(text: string) => (passwordRef.current = text)}
           />
 
           {/* Signup Button */}
           <Button
             title="Signup"
             hasShadow={true}
-            style={{ marginTop: 20 }}
+            buttonStyle={{ marginTop: 20 }}
             loading={loading}
             onPress={onSubmit}
           />
@@ -148,13 +148,13 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontFamily: theme.fonts.medium,
     fontWeight: theme.fonts.bold,
-  },
+  } as TextStyle,
   title: {
     fontSize: hp(4),
     color: theme.colors.primary,
     fontFamily: theme.fonts.extraBold,
     fontWeight: theme.fonts.extraBold
-  },
+  } as TextStyle,
   form: {
     gap: 20,
     marginTop: hp(4),

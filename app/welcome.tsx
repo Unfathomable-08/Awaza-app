@@ -2,8 +2,7 @@ import { useRouter } from 'expo-router';
 import { Image, Pressable, StatusBar, Text, View } from 'react-native';
 import { styles } from '@/styles/welcome';
 import Button from '@/components//ui/Button';
-import { theme } from '@/constants/theme';
-import { hp, wp } from '@/utils/common';
+import { wp } from '@/utils/common';
 import React from 'react';
 
 export default function Welcome(){
