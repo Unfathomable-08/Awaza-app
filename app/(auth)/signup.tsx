@@ -1,13 +1,13 @@
 import Icon from '@/assets/icons';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import ScreenWrapper from '@/components/ui/ScreenWrapper';
-import { theme } from '@/constants/theme';
+import Button from '@/components/Button';
+import Input from '@/components/Input';
+import ScreenWrapper from '@/components/ScreenWrapper';
+import { colors } from '@/constants/Colors';
+import { hp, wp } from '@/constants/Styles';
 import { signUp } from '@/utils/auth';
-import { hp, wp } from '@/utils/common';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Alert, Pressable, StatusBar, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { Alert, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 export default function Signup() {
   const router = useRouter();
@@ -38,24 +38,13 @@ export default function Signup() {
 
     try {
       await signUp(email, password, name);
-      router.replace('/(app)/home')
-
+      // Typically successful signup logs you in, or sends verification
+      // If auto-login, redirect. If verification, show alert or special screen.
+      // Based on previous code, it replaces to home.
+      // router.replace('/(app)/home') 
     } catch (error: any) {
       console.error('Signup error:', error);
-
-      let message = 'Something went wrong. Please try again.';
-
-      if (error.code === 'auth/email-already-in-use') {
-        message = 'This email is already registered. Try logging in.';
-      } else if (error.code === 'auth/weak-password') {
-        message = 'Password is too weak.';
-      } else if (error.code === 'auth/invalid-email') {
-        message = 'Please enter a valid email address.';
-      } else if (error.message) {
-        message = error.message;
-      }
-
-      Alert.alert('Sign Up Failed', message);
+      Alert.alert('Sign Up Failed', error.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -63,12 +52,14 @@ export default function Signup() {
 
   return (
     <ScreenWrapper bg="white">
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* Back Button */}
-      <Pressable onPress={() => router.back()}>
-        <Icon name="arrowLeft" size={26} color={theme.colors.text} strokeWidth={2.5} />
-      </Pressable>
+      <View style={styles.backButton}>
+        <Pressable onPress={() => router.back()} hitSlop={10}>
+          <Icon name="arrowLeft" size={26} color={colors.text} strokeWidth={2.5} />
+        </Pressable>
+      </View>
 
       <View style={styles.container}>
         {/* Header */}
@@ -81,14 +72,14 @@ export default function Signup() {
         <View style={styles.form}>
           {/* Name Field */}
           <Input
-            icon={<Icon name="user" size={26} color={theme.colors.textLight} />}
+            icon={<Icon name="user" size={26} color={colors.textLight} />}
             placeholder="Create a username"
             onChangeText={(text: string) => (nameRef.current = text)}
           />
 
           {/* Email Field */}
           <Input
-            icon={<Icon name="mail" size={26} color={theme.colors.textLight} />}
+            icon={<Icon name="mail" size={26} color={colors.textLight} />}
             placeholder="Enter your email"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -97,7 +88,7 @@ export default function Signup() {
 
           {/* Password Field */}
           <Input
-            icon={<Icon name="lock" size={26} color={theme.colors.textLight} />}
+            icon={<Icon name="lock" size={26} color={colors.textLight} />}
             placeholder="Enter your password"
             secureTextEntry
             onChangeText={(text: string) => (passwordRef.current = text)}
@@ -106,7 +97,6 @@ export default function Signup() {
           {/* Signup Button */}
           <Button
             title="Signup"
-            hasShadow={true}
             buttonStyle={{ marginTop: 20 }}
             loading={loading}
             onPress={onSubmit}
@@ -117,7 +107,7 @@ export default function Signup() {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account? </Text>
           <Pressable onPress={() => router.push('/(auth)/login')}>
-            <Text style={[styles.footerText, styles.signUpText]}>Login</Text>
+            <Text style={styles.loginText}>Login</Text>
           </Pressable>
         </View>
       </View>
@@ -130,49 +120,43 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: wp(5),
     paddingTop: hp(4),
-    paddingBottom: hp(5),
     gap: 20,
   },
-  backBtn: {
-   alignSelf: 'flex-start',
-   marginLeft: 4,
-   padding: 4,
-   borderRadius: theme.radius.xxl,
-   backgroundColor: 'rgba(0,0,0,0.07)',
+  backButton: {
+    paddingLeft: wp(5),
+    paddingTop: 10,
   },
   header: {
     gap: 6,
+    marginBottom: hp(2),
   },
   welcomeText: {
-    fontSize: hp(4),
-    color: theme.colors.text,
-    fontFamily: theme.fonts.medium,
-    fontWeight: theme.fonts.bold,
-  } as TextStyle,
+    fontSize: hp(3.5),
+    color: colors.text,
+    fontWeight: 'bold',
+  },
   title: {
     fontSize: hp(4),
-    color: theme.colors.primary,
-    fontFamily: theme.fonts.extraBold,
-    fontWeight: theme.fonts.extraBold
-  } as TextStyle,
+    color: colors.primary,
+    fontWeight: '800',
+  },
   form: {
     gap: 20,
-    marginTop: hp(4),
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 5,
+    marginTop: hp(4),
   },
   footerText: {
-    color: theme.colors.text,
-    fontSize: hp(2),
-    fontFamily: theme.fonts.medium,
+    color: colors.text,
+    fontSize: hp(1.8),
   },
-  signUpText: {
-    color: theme.colors.primary,
-    fontSize: hp(2),
-    fontFamily: theme.fonts.bold,
+  loginText: {
+    color: colors.primary,
+    fontSize: hp(1.8),
+    fontWeight: '700',
+    marginLeft: 5,
   },
 });

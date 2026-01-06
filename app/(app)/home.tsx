@@ -1,20 +1,14 @@
 import Icon from "@/assets/icons";
-import { RenderPost } from "@/components/home/renderPost";
-import ScreenWrapper from "@/components/ui/ScreenWrapper";
-import { theme } from "@/constants/theme";
+import Avatar from "@/components/Avatar";
+import Feed from "@/components/Feed";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import { colors } from "@/constants/Colors";
+import { commonStyles, hp, radius, spacing } from "@/constants/Styles";
 import { useAuth } from "@/contexts/authContext";
-import { styles } from "@/styles/timeline";
 import { loadFeed } from "@/utils/feed";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  StatusBar,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 
 export default function Home() {
   const router = useRouter();
@@ -40,6 +34,7 @@ export default function Home() {
         setCursor,
         setPosts,
       });
+
   };
 
   // Pull to refresh
@@ -47,7 +42,7 @@ export default function Home() {
     setCursor(null);
     setHasMore(true);
     loadFeed({
-      isLoadMore: true,
+      isLoadMore: false,
       loading,
       setLoading,
       refreshing,
@@ -60,112 +55,38 @@ export default function Home() {
     });
   };
 
-  // Sample stories data
-  const stories = [
-    {
-      _id: "1",
-      user: "You",
-      image: require("@/assets/images/default_user.jpg"),
-      isYourStory: true,
-    },
-    {
-      _id: "2",
-      user: "Alex",
-      image: require("@/assets/images/default_user.jpg"),
-    },
-    {
-      _id: "3",
-      user: "Emma",
-      image: require("@/assets/images/default_user.jpg"),
-    },
-    {
-      _id: "4",
-      user: "John",
-      image: require("@/assets/images/default_user.jpg"),
-    },
-    {
-      _id: "5",
-      user: "Sara",
-      image: require("@/assets/images/default_user.jpg"),
-    },
-  ];
-
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
-
-  if (!isLoading && !user) {
-    router.push("/welcome");
-  }
-
   return (
-    <ScreenWrapper bg="#fff">
-      <StatusBar barStyle="light-content" />
+    <ScreenWrapper bg={colors.background}>
+      <StatusBar barStyle="dark-content" />
 
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.logo}>Awaza</Text>
-        <View style={{ flexDirection: "row", gap: 16 }}>
+        <View style={styles.headerIcons}>
           <Pressable onPress={() => router.push("/(app)/account-setting")}>
-            <Icon name="user" size={28} color={theme.colors.text} />
+            <Avatar uri={user?.avatar} size={hp(4.2)} rounded={radius.full} />
           </Pressable>
-          <Pressable onPress={() => router.push("/(app)/inbox")}>
-            <Icon name="send" size={28} color={theme.colors.text} />
+          <Pressable
+            style={styles.iconButton}
+            onPress={() => router.push("/(app)/inbox")}
+          >
+            <Icon name="send" size={24} color={colors.text} />
           </Pressable>
         </View>
       </View>
 
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <RenderPost item={item} user={user} setPosts={setPosts} />
-        )}
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.5}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <View style={styles.feedTopSection}>
-            <View style={styles.chipsContainer}>
-              <Pressable style={[styles.chip, styles.chipActive]}>
-                <Text style={styles.chipTextActive}>All Posts</Text>
-              </Pressable>
-              <Pressable style={styles.chip}>
-                <Text style={styles.chipText}>Following</Text>
-              </Pressable>
-              <Pressable style={styles.chip}>
-                <Text style={styles.chipText}>Trending</Text>
-              </Pressable>
-            </View>
-          </View>
-        }
-        // ListHeaderComponent={
-        //     <View style={styles.storiesContainer}>
-        //       <FlatList
-        //         data={stories}
-        //         horizontal
-        //         showsHorizontalScrollIndicator={false}
-        //         keyExtractor={(item) => item._id}
-        //         renderItem={renderStory}
-        //         contentContainerStyle={{ paddingHorizontal: wp(4) }}
-        //       />
-        //     </View>
-        // }
-        ListFooterComponent={
-          loading && hasMore ? (
-            <ActivityIndicator
-              style={{ margin: 20 }}
-              color={theme.colors.primary}
-            />
-          ) : null
-        }
-      />
+      {/* Feed */}
+      <View style={{ flex: 1 }}>
+        <Feed
+          data={posts}
+          loading={loading}
+          onEndReached={onEndReached}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+          router={router}
+          user={user}
+        />
+      </View>
 
       {/* Floating Action Button */}
       <Pressable
@@ -177,3 +98,47 @@ export default function Home() {
     </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.separator,
+  },
+  logo: {
+    fontSize: hp(3.2),
+    fontWeight: "800",
+    color: colors.primary,
+    letterSpacing: 0.5,
+  },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+  iconButton: {
+    padding: 5,
+    backgroundColor: colors.inputBg,
+    borderRadius: radius.full,
+  },
+  fab: {
+    position: "absolute",
+    bottom: hp(4),
+    right: wp(5),
+    backgroundColor: colors.primary,
+    width: hp(7),
+    height: hp(7),
+    borderRadius: radius.full,
+    justifyContent: "center",
+    alignItems: "center",
+    ...commonStyles.shadowMedium,
+  },
+});
+
+// Import wp from existing styles or common if needed for FAB right positioning
+import { wp } from "@/constants/Styles";
+

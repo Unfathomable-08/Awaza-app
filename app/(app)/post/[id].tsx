@@ -1,28 +1,26 @@
-import Icon from "@/assets/icons";
 import { NestedComment } from "@/components/home/NestedComment";
-import ScreenWrapper from "@/components/ui/ScreenWrapper";
-import { theme } from "@/constants/theme";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import { colors } from "@/constants/Colors";
 import { useAuth } from "@/contexts/authContext";
 import { styles } from "@/styles/post";
+import { getComments, likePost } from "@/utils/actions";
 import { buildCommentTree } from "@/utils/buildCommentTree";
-import { hp, timeAgo } from "@/utils/common";
+import { timeAgo } from "@/utils/common";
 import { getPost } from "@/utils/post";
-import { likePost, loadComments } from "@/utils/postActions";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Pressable,
   Text,
-  View,
+  View
 } from "react-native";
 
 export default function PostDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -31,15 +29,21 @@ export default function PostDetail() {
   const [commentTree, setCommentTree] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Handle array param
+  const postId = Array.isArray(id) ? id[0] : id;
+
   const fetchData = async () => {
+    if (!postId) return;
     setLoading(true);
     try {
-      const postData = await getPost(id);
-      const commentsData = await loadComments(id);
-      setPost(postData.post);
-      setComments(commentsData.comments);
+      const [postData, commentsData] = await Promise.all([
+        getPost(postId),
+        getComments(postId)
+      ]);
+      setPost(postData.post || postData);
+      setComments(commentsData.comments || commentsData || []);
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      //   Alert.alert("Error", error.message);
       console.error("Error fetching post:", error);
     } finally {
       setLoading(false);
@@ -48,7 +52,7 @@ export default function PostDetail() {
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [postId]);
 
   useEffect(() => {
     if (comments.length > 0) {
@@ -56,21 +60,22 @@ export default function PostDetail() {
     }
   }, [comments]);
 
-  const likePostFn = (id: any) => {
+  const likePostFn = async (id: any) => {
     try {
       setPost((p: any) => {
-        const alreadyLiked = p.likes.includes(user?.id);
+        const alreadyLiked = p.likes.includes(user?._id || user?.id);
+        const userId = user?._id || user?.id;
 
         return {
           ...p,
           likes: alreadyLiked
-            ? p.likes.filter((l: string) => l !== user?.id)
-            : [...p.likes, user?.id],
+            ? p.likes.filter((l: string) => l !== userId)
+            : [...p.likes, userId],
           likesCount: alreadyLiked ? p.likesCount - 1 : p.likesCount + 1,
         };
       });
 
-      likePost(id);
+      await likePost(id);
     } catch (err) {
       console.log(err);
     }
@@ -79,7 +84,7 @@ export default function PostDetail() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -97,45 +102,38 @@ export default function PostDetail() {
       {/* Header */}
       <View style={styles.postHeader}>
         <Pressable
-          onPress={() => router.replace("/(app)/home")}
+          onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Icon name="arrowLeft" size={24} color={theme.colors.text} />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Post</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <FlatList
-        data={comments}
+        data={comments} // FlashList/FlatList requires data, but we render Custom items in footer for tree
         keyExtractor={(item) => item._id}
-        renderItem={()=>(
-          <View></View>
-        )}
+        renderItem={() => (<View />)} // Rendering empty views as we use Footer for recursive tree
         ListHeaderComponent={
-          <View style={{ paddingBottom: hp(2) }}>
+          <View style={{ paddingBottom: 16 }}>
             {/* Main Post */}
             <View>
               <View style={styles.postHeader}>
-                <Pressable onPress={() => router.push(`/`)}>
+                <Pressable onPress={() => { }}>
                   <Image
                     source={
-                      post.user.image
-                        ? { uri: post.user.image }
+                      post.user?.avatar
+                        ? { uri: post.user.avatar }
                         : require("@/assets/images/default_user.jpg")
                     }
                     style={styles.postAvatar}
                   />
                 </Pressable>
                 <View style={{ flex: 1 }}>
-                  <Pressable onPress={() => router.push(`/`)}>
+                  <Pressable onPress={() => { }}>
                     <Text style={styles.postName}>{post?.user?.name}</Text>
                   </Pressable>
-                  {post.user?.name && (
-                    <Text style={styles.postname}>
-                      {post?.user?.name?.toLowerCase() || "Muhammad"}
-                    </Text>
-                  )}
                   <Text style={styles.postUsername}>
                     @{post.user?.username?.toLowerCase()}
                   </Text>
@@ -151,13 +149,12 @@ export default function PostDetail() {
 
               <View style={styles.postActions}>
                 <Pressable
-                  onPress={() => router.push(`/(app)/comment/${post._id}`)}
                   style={styles.actionButton}
                 >
-                  <Icon
-                    name="comment"
+                  <Ionicons
+                    name="chatbubble-outline"
                     size={22}
-                    color={theme.colors.textLight}
+                    color={colors.textLight}
                   />
                   <Text style={styles.actionCount}>
                     {post.commentsCount || 0}
@@ -165,25 +162,25 @@ export default function PostDetail() {
                 </Pressable>
                 <Pressable
                   style={styles.actionButton}
-                  onPress={() => likePostFn(post._id)}
+                  onPress={() => likePostFn(post._id || post.id)}
                 >
-                  {post.likes.includes(user?.id) ? (
+                  {(post.likes?.includes(user?._id || user?.id)) ? (
                     <Ionicons
                       name="heart"
                       size={22}
-                      color={theme.colors.primary}
+                      color={colors.primary}
                     />
                   ) : (
                     <Ionicons
                       name="heart-outline"
                       size={22}
-                      color={theme.colors.text}
+                      color={colors.text}
                     />
                   )}
                   <Text style={styles.actionCount}>{post.likesCount}</Text>
                 </Pressable>
                 <Pressable>
-                  <Icon name="send" size={22} color={theme.colors.text} />
+                  <Ionicons name="share-social-outline" size={22} color={colors.text} />
                 </Pressable>
               </View>
             </View>
@@ -195,7 +192,7 @@ export default function PostDetail() {
           </View>
         }
         ListEmptyComponent={
-          <Text style={styles.noComments}>No replies yet. Be the first!</Text>
+          commentTree.length === 0 ? <Text style={styles.noComments}>No replies yet. Be the first!</Text> : null
         }
         ListFooterComponent={
           <View>
@@ -203,28 +200,25 @@ export default function PostDetail() {
               <NestedComment
                 key={rootComment._id}
                 comment={rootComment}
-                postId={post._id}
-                currentUserId={user?.id}
+                postId={post._id || post.id}
+                currentUserId={user?._id || user?.id}
                 depth={0}
               />
             ))}
           </View>
         }
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: hp(12) }}
+        contentContainerStyle={{ paddingBottom: 100 }}
       />
 
       {/* Reply FAB */}
       <Pressable
         style={styles.replyFab}
         onPress={() =>
-          router.push({
-            pathname: "/(app)/compose-post",
-            params: { replyTo: id, replyToUser: post.user.name },
-          })
+          router.push(`/(app)/comment/${postId}`)
         }
       >
-        <Icon name="comment" size={28} color="#fff" />
+        <Ionicons name="chatbubble" size={28} color="#fff" />
       </Pressable>
     </ScreenWrapper>
   );

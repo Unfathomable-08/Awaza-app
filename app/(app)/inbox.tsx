@@ -1,46 +1,16 @@
-import Icon from "@/assets/icons";
-import ScreenWrapper from "@/components/ui/ScreenWrapper";
-import { useAuth } from "@/contexts/authContext";
-import { styles } from "@/styles/inbox";
-import { hp } from "@/utils/common";
-import { getChatsMetadata } from "@/utils/inbox";
-import { searchUsers } from "@/utils/search";
 import { Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-interface ChatUser {
-  _id: string;
-  username: string;
-  avatar?: string; 
-  isOnline?: boolean;
-}
-
-interface Message {
-  _id: string;
-  slug: string;
-  users: ChatUser[];
-  lastMessage?: string;
-  timestamp?: string;
-  unread?: number;
-}
-
-interface MessageItemProps {
-  item: Message;
-  currentUserId: string; 
-}
+import ScreenWrapper from "@/components/ScreenWrapper";
+import { colors } from "@/constants/Colors";
+import { commonStyles, hp, radius, spacing } from "@/constants/Styles";
+import { useAuth } from "@/contexts/authContext";
+import { getChatsMetadata } from "@/utils/inbox";
+import { searchUsers } from "@/utils/search";
 
 export default function Inbox() {
   const router = useRouter();
@@ -52,31 +22,30 @@ export default function Inbox() {
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const res = await getChatsMetadata();
-      setMessages(res);
-    };
-
     fetchData();
   }, []);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setIsSearching(false);
-      setSearchResults([]);
-      return;
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await getChatsMetadata();
+      setMessages(res || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
     setLoading(true);
     setIsSearching(true);
     try {
       const results = await searchUsers(searchQuery.trim());
-      // Assuming searchUsers now returns the data properly
       setSearchResults(results || []);
     } catch (err) {
-      Alert.alert("Error", "Failed to search users. Please try again.");
-      console.error(err);
-      setSearchResults([]);
+      Alert.alert("Error", "Failed to search users.");
     } finally {
       setLoading(false);
     }
@@ -88,154 +57,206 @@ export default function Inbox() {
     setSearchResults([]);
   };
 
-const renderMessageItem = ({ item, currentUserId }: MessageItemProps) => {
-  const router = useRouter();
+  const renderMessageItem = ({ item }: { item: any }) => {
+    const otherUser = item.users?.find((u: any) => u._id !== user?.id) || item.users?.[0];
+    const username = otherUser?.username || 'Unknown';
+    const avatar = otherUser?.avatar;
+    const isOnline = otherUser?.isOnline;
 
-  // Find the OTHER user (not the current user)
-  const otherUser = item.users.find(user => user._id !== currentUserId);
-
-  // Fallback if something goes wrong 
-  const displayUser = otherUser || item.users[0];
-
-  const username = displayUser.username || 'Unknown';
-  const avatarSource = {uri: displayUser.avatar}
-
-  const isOnline = displayUser.isOnline ?? false;
-  const unreadCount = item.unread || 0;
-
-  return (
-    <TouchableOpacity
-      style={styles.messageItem}
-      onPress={() => router.push(`/inbox/${item.slug}`)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.avatarContainer}>
-        <Image contentFit="cover" source={avatarSource} style={styles.avatar} placeholder={require("@/assets/images/default_user.jpg")} />
-        {isOnline && <View style={styles.onlineDot} />}
-      </View>
-
-      <View style={styles.messageContent}>
-        <View style={styles.messageHeader}>
-          <Text style={styles.username}>{username}</Text>
-          {item.timestamp && (
-            <Text style={styles.timestamp}>{item.timestamp}</Text>
-          )}
+    return (
+      <TouchableOpacity
+        style={styles.chatItem}
+        onPress={() => router.push(`/(app)/inbox/${item.slug}`)} // Assuming slug is unique ID for chat room
+      >
+        <View>
+          <Image source={avatar ? { uri: avatar } : require("@/assets/images/default_user.jpg")} style={styles.avatar} />
+          {isOnline && <View style={styles.onlineDot} />}
         </View>
-        {item.lastMessage && (
-          <Text style={styles.lastMessage} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
+        <View style={styles.chatContent}>
+          <View style={commonStyles.rowBetween}>
+            <Text style={styles.username}>{username}</Text>
+            <Text style={styles.time}>{item.timestamp}</Text>
+          </View>
+          <Text style={styles.lastMsg} numberOfLines={1}>{item.lastMessage}</Text>
+        </View>
+        {item.unread > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.unread}</Text>
+          </View>
         )}
-      </View>
+      </TouchableOpacity>
+    );
+  };
 
-      {unreadCount > 0 && (
-        <View style={styles.unreadBadge}>
-          <Text style={styles.unreadText}>
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-};
-
-  const renderSearchUser = ({ item }: { item: ChatUser }) => (
+  const renderSearchUser = ({ item }: { item: any }) => (
     <TouchableOpacity
-      style={styles.searchUserItem}
+      style={styles.chatItem}
       onPress={() => {
         if (!user?.username || !item.username) return;
-
         const sortedUsernames = [user.id, item._id].sort();
         const chatPath = sortedUsernames.join("_");
-
         router.push(`/(app)/inbox/${chatPath}`);
       }}
     >
       <Image
-        source={{ uri: item.avatar }}
-        placeholder={require("@/assets/images/default_user.jpg")}
-        contentFit="cover"
+        source={item.avatar ? { uri: item.avatar } : require("@/assets/images/default_user.jpg")}
         style={styles.avatar}
       />
-      <Text style={styles.searchUsername}>{item.username}</Text>
+      <View style={{ justifyContent: 'center', marginLeft: 10 }}>
+        <Text style={styles.username}>{item.username}</Text>
+      </View>
     </TouchableOpacity>
   );
 
   return (
-    <ScreenWrapper bg="#fff">
+    <ScreenWrapper bg={colors.background}>
       <StatusBar barStyle="dark-content" />
-
-      {/* Header with Search Bar */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
-
-        <View style={styles.searchContainer}>
-          <Icon
-            name="search"
-            size={20}
-            color="#888"
-            style={styles.searchIcon}
-          />
-
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search users"
-            placeholderTextColor="#aaa"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearch} // search on Enter
-            autoCorrect={false}
-          />
-
-          {loading && (
-            <ActivityIndicator
-              size="small"
-              color="#888"
-              style={{ marginRight: 8 }}
-            />
-          )}
-
-          {searchQuery.length > 0 && !loading && (
-            <Pressable onPress={clearSearch} style={styles.clearButton}>
-              <Ionicons name="close-outline" size={18} color="#888" />
-            </Pressable>
-          )}
-
-          {/* Search Button */}
-          <Pressable onPress={handleSearch} style={styles.searchButton2}>
-            <Ionicons name="arrow-forward" size={18} color="#fff" />
-          </Pressable>
-        </View>
+        <Text style={styles.title}>Messages</Text>
+        <Pressable onPress={() => router.back()}>
+          <Ionicons name="close" size={24} color={colors.text} />
+        </Pressable>
       </View>
 
-      {/* Content */}
-      <FlatList
-        data={isSearching ? searchResults : messages}
-        keyExtractor={(item: any) => item._id}
-        renderItem={({ item }) =>
-          isSearching ? renderSearchUser({ item }) : renderMessageItem({ item, currentUserId: user?.id || "" })
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: hp(1) }}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="comment" size={80} color="#ddd" />
-            <Text style={styles.emptyText}>
-              {isSearching ? "No users found" : "No messages yet"}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {isSearching
-                ? `No results for "${searchQuery}"`
-                : "Start a conversation!"}
-            </Text>
-          </View>
-        }
-      />
+      {/* Search */}
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={20} color={colors.textLight} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search users..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={handleSearch}
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={clearSearch}>
+            <Ionicons name="close-circle" size={18} color={colors.textLight} />
+          </Pressable>
+        )}
+      </View>
 
-      {/* Floating New Message Button */}
-      <Pressable style={styles.fab} onPress={() => router.push("/(app)/inbox")}>
-        <Icon name="edit" size={28} color="#fff" strokeWidth={2.5} />
-      </Pressable>
+      <View style={{ flex: 1 }}>
+        <FlashList
+          data={isSearching ? searchResults : messages}
+          keyExtractor={(item: any) => item._id}
+          renderItem={({ item }) =>
+            isSearching ? renderSearchUser({ item }) : renderMessageItem({ item })
+          }
+          estimatedItemSize={70}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: spacing.m, paddingTop: hp(1) }}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="chatbubbles-outline" size={80} color="#ddd" />
+              <Text style={styles.emptyText}>
+                {isSearching ? "No users found" : "No messages yet"}
+              </Text>
+              <Text style={styles.emptySubtext}>
+                {isSearching
+                  ? `No results for "${searchQuery}"`
+                  : "Start a conversation!"}
+              </Text>
+            </View>
+          }
+        />
+      </View>
     </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.m,
+    marginBottom: spacing.m
+  },
+  title: {
+    fontSize: hp(2.5),
+    fontWeight: '700',
+    color: colors.text
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.inputBg,
+    marginHorizontal: spacing.m,
+    paddingHorizontal: spacing.s,
+    borderRadius: radius.m,
+    height: 40,
+    gap: 8
+  },
+  searchInput: {
+    flex: 1,
+    color: colors.text
+  },
+  chatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.m,
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.separator,
+    gap: spacing.m
+  },
+  avatar: {
+    width: hp(6),
+    height: hp(6),
+    borderRadius: radius.full,
+    backgroundColor: '#eee'
+  },
+  onlineDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    backgroundColor: colors.success,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.background
+  },
+  chatContent: {
+    flex: 1,
+    gap: 4
+  },
+  username: {
+    fontSize: hp(1.8),
+    fontWeight: '600',
+    color: colors.text
+  },
+  time: {
+    fontSize: hp(1.4),
+    color: colors.textMuted
+  },
+  lastMsg: {
+    fontSize: hp(1.6),
+    color: colors.textLight
+  },
+  badge: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.full,
+    paddingHorizontal: 6,
+    paddingVertical: 2
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold'
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: hp(10),
+    gap: 10
+  },
+  emptyText: {
+    fontSize: hp(2),
+    color: colors.text,
+    fontWeight: '600'
+  },
+  emptySubtext: {
+    fontSize: hp(1.6),
+    color: colors.textLight
+  }
+});

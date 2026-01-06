@@ -1,20 +1,11 @@
-import ScreenWrapper from "@/components/ui/ScreenWrapper";
-import { theme } from "@/constants/theme";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import { colors } from "@/constants/Colors";
+import { hp, radius, spacing } from "@/constants/Styles";
 import { useAuth } from "@/contexts/authContext";
-import { hp, wp } from "@/utils/common";
-import { useRouter } from "expo-router";
 import { updateUsername } from "@/utils/accountSetting";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StatusBar,
-  Text,
-  TextInput,
-  View,
-  StyleSheet
-} from "react-native";
+import { ActivityIndicator, Alert, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function UpdateUsername() {
   const router = useRouter();
@@ -56,8 +47,7 @@ export default function UpdateUsername() {
       ]);
     } catch (error: any) {
       console.error(error);
-      const message =
-        error.message || "Failed to update username. It might already be taken.";
+      const message = error.message || "Failed to update username. It might already be taken.";
       Alert.alert("Error", message);
     } finally {
       setLoading(false);
@@ -67,24 +57,21 @@ export default function UpdateUsername() {
   const hasChanged = username.trim().toLowerCase() !== (user?.username || "");
 
   return (
-    <ScreenWrapper bg="#fff">
-      <StatusBar barStyle="light-content" />
+    <ScreenWrapper bg={colors.background}>
+      <StatusBar barStyle="dark-content" />
 
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.cancel}>Cancel</Text>
         </Pressable>
+        {/* Title? Maybe "Change Username" */}
+        <Text style={styles.title}>Username</Text>
         <Pressable onPress={handleSave} disabled={loading || !hasChanged}>
           {loading ? (
-            <ActivityIndicator color={theme.colors.primary} />
+            <ActivityIndicator color={colors.primary} />
           ) : (
-            <Text
-              style={[
-                styles.save,
-                (!hasChanged || loading) && styles.saveDisabled,
-              ]}
-            >
+            <Text style={[styles.save, (!hasChanged || loading) && styles.saveDisabled]}>
               Save
             </Text>
           )}
@@ -104,6 +91,7 @@ export default function UpdateUsername() {
             autoCapitalize="none"
             autoCorrect={false}
             autoFocus
+            placeholderTextColor={colors.textLight}
           />
         </View>
 
@@ -127,62 +115,72 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(2),
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
     borderBottomWidth: 0.5,
-    borderBottomColor: "#ddd",
+    borderBottomColor: colors.separator,
   },
   cancel: {
-    fontSize: hp(2.1),
-    color: theme.colors.textLight || "#666",
+    fontSize: hp(2),
+    color: colors.text
+  },
+  title: {
+    fontSize: hp(2),
+    fontWeight: '700',
+    color: colors.text
   },
   save: {
-    fontSize: hp(2.1),
-    color: theme.colors.primary,
-    fontWeight: "600",
+    fontSize: hp(2),
+    color: colors.primary,
+    fontWeight: "700",
   },
   saveDisabled: {
-    color: "#aaa",
+    color: colors.textLight,
   },
   content: {
-    paddingHorizontal: wp(5),
-    paddingTop: hp(4),
+    paddingHorizontal: spacing.m,
+    paddingTop: spacing.xl,
   },
   label: {
-    fontSize: hp(2),
-    color: theme.colors.textLight || "#666",
-    marginBottom: hp(1),
+    fontSize: hp(1.8),
+    color: colors.textLight,
+    marginBottom: spacing.s,
+    marginLeft: 4
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
+    backgroundColor: colors.inputBg,
+    borderRadius: radius.l,
     borderWidth: 1,
-    borderColor: "#ddd",
-    paddingHorizontal: wp(4),
+    borderColor: 'transparent', // or colors.border
+    paddingHorizontal: spacing.m,
   },
   atSymbol: {
-    fontSize: hp(2.8),
-    color: theme.colors.textLight || "#888",
-    marginRight: wp(1),
+    fontSize: hp(2.2),
+    color: colors.textLight,
+    marginRight: 4,
+    fontWeight: '600'
   },
   input: {
     flex: 1,
-    fontSize: hp(2.8),
-    paddingVertical: hp(2),
-    color: theme.colors.text,
+    fontSize: hp(2.2),
+    paddingVertical: 14,
+    color: colors.text,
+    fontWeight: '600'
   },
   helperText: {
-    fontSize: hp(1.8),
-    color: theme.colors.textLight || "#888",
-    marginTop: hp(2),
-    lineHeight: hp(2.4),
+    fontSize: hp(1.6),
+    color: colors.textLight,
+    marginTop: spacing.m,
+    lineHeight: hp(2.2),
+    marginLeft: 4
   },
   errorText: {
-    fontSize: hp(1.9),
-    color: "#e0245e",
-    marginTop: hp(1.5),
+    fontSize: hp(1.6),
+    color: colors.error,
+    marginTop: spacing.s,
     fontWeight: "500",
+    marginLeft: 4
   },
 });

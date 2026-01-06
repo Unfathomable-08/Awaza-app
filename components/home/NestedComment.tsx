@@ -1,183 +1,205 @@
-import Icon from "@/assets/icons";
 import { theme } from "@/constants/theme";
-import { styles } from "@/styles/post";
-import { hp, wp } from "@/utils/common";
+import { timeAgo } from "@/utils/common";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Pressable, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface NestedCommentProps {
-  comment: any;
-  postId: string;
-  currentUserId?: string;
-  depth?: number;
+    comment: any;
+    postId: string;
+    currentUserId?: string;
+    depth: number;
+    isLastInThread?: boolean; // We'll calculate this in parent
 }
 
-const MAX_DEPTH = 8;
-
 export const NestedComment = ({
-  comment,
-  postId,
-  currentUserId,
-  depth = 0,
+    comment,
+    postId,
+    currentUserId,
+    depth = 0,
+    isLastInThread = false,
 }: NestedCommentProps) => {
-  const router = useRouter();
-  console.log(comment)
+    const router = useRouter();
+    const [liked, setLiked] = useState(comment.likes?.includes(currentUserId));
+    const [likesCount, setLikesCount] = useState(comment.likesCount || 0);
 
-  const timeAgo = (date: string) => {
-    const diff = Date.now() - new Date(date).getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    return days < 30 ? `${days}d` : new Date(date).toLocaleDateString();
-  };
+    const handleLike = async () => {
+        const newLiked = !liked;
+        setLiked(newLiked);
+        setLikesCount(prev => newLiked ? prev + 1 : prev - 1);
+    };
 
-  // Visual adjustments based on depth
-  const indent = depth * 20; // Enough space for line + avatar
-  const avatarSize = Math.max(42 - depth * 4, 28);
-  const fontScale = Math.max(1 - depth * 0.04, 0.88);
-  const isReply = depth > 0;
+    const hasReplies = comment.replies && comment.replies.length > 0;
+    const showThreadLine = depth > 0;
 
-  if (depth >= MAX_DEPTH) return null;
+    // Only increase indent up to depth 4, then stop
+    const indent = Math.min(depth, 4) * 52; // 32 (avatar) + 20 gap
 
-  return (
-    <View style={{ position: "relative" }}>
-      {/* Continuous Vertical Thread Line (only for replies) */}
-      {isReply && (
-        <View
-          style={{
-            position: "absolute",
-            left: wp(4) + indent - 16, // Aligns with avatar center
-            top: 0,
-            bottom: 0,
-            width: 2,
-            backgroundColor: theme.colors.textLight + "30",
-            borderRadius: "1px solid transparent", 
-          }}
-        />
-      )}
+    return (
+        <View style={{ position: "relative" }}>
+            {/* Vertical thread line - Twitter style */}
+            {showThreadLine && (
+                <View
+                    style={[
+                        styles.threadLine,
+                        {
+                            left: 16, // Always aligned to first avatar center (16 = half of 32)
+                            height: hasReplies || !isLastInThread ? "100%" : 40,
+                            top: hasReplies ? 0 : 40,
+                            opacity: depth >= 5 ? 0.4 : 1,
+                        },
+                    ]}
+                />
+            )}
 
-      {/* Horizontal connector (small L shape) */}
-      {isReply && (
-        <View
-          style={{
-            position: "absolute",
-            left: wp(4) + indent - 16,
-            top: 28,
-            width: 14,
-            height: 2,
-            backgroundColor: theme.colors.textLight + "30",
-          }}
-        />
-      )}
+            {/* Horizontal connector line (only for replies) */}
+            {depth > 0 && (
+                <View style={[styles.connectorLine, { left: 16, bottom: isLastInThread ? undefined : "50%" }]} />
+            )}
 
-      {/* Main Comment Row */}
-      <View
-        style={[
-          styles.commentContainer,
-          {
-            paddingLeft: wp(4) + indent,
-            paddingVertical: hp(1.8),
-            paddingTop: hp(2),
-            paddingBottom: hp(2.2),
-          },
-        ]}
-      >
-        {/* Avatar */}
-        <Pressable onPress={() => router.push(`/`)}>
-          <Image
-            source={comment.user.avatar}
-            placeholder={require("@/assets/images/default_user.jpg")}
-            style={{
-              width: avatarSize,
-              height: avatarSize,
-              borderRadius: avatarSize / 2,
-              backgroundColor: "#ddd",
-            }}
-          />
-        </Pressable>
+            <View style={[styles.commentContainer, { paddingLeft: depth === 0 ? 0 : 52 }]}>
+                <View style={styles.avatarWrapper}>
+                    <Pressable onPress={() => { }}>
+                        <Image
+                            source={
+                                comment.user?.avatar
+                                    ? { uri: comment.user.avatar }
+                                    : require("@/assets/images/default_user.jpg")
+                            }
+                            style={styles.avatar}
+                        />
+                    </Pressable>
+                </View>
 
-        {/* Comment Content */}
-        <View style={styles.commentRight}>
-          <View style={styles.commentHeader}>
-            <Text
-              style={[
-                styles.commentName,
-                { fontSize: hp(2.1) * fontScale },
-              ]}
-            >
-              {comment.user.name || "Anonymous"}
-            </Text>
-            <Text style={styles.commentUsername}>
-              @{comment.user.username}
-            </Text>
-            <Text style={styles.commentTime}>
-              · {timeAgo(comment.createdAt)}
-            </Text>
-          </View>
+                <View style={styles.content}>
+                    <View style={styles.header}>
+                        <Text style={styles.name}>{comment.user?.name}</Text>
+                        <Text style={styles.username}>@{comment.user?.username || 'user'}</Text>
+                        <Text style={styles.dot}>·</Text>
+                        <Text style={styles.time}>{timeAgo(comment.createdAt)}</Text>
+                    </View>
 
-          <Text
-            style={[
-              styles.commentText,
-              {
-                fontSize: hp(2.1) * fontScale,
-                lineHeight: hp(3) * fontScale,
-              },
-            ]}
-          >
-            {comment.content}
-          </Text>
+                    <Text style={styles.text}>{comment.content}</Text>
 
-          {/* Comment Image */}
-          {comment.image && (
-            <Image
-              source={{ uri: comment.image }}
-              style={[
-                styles.commentImage,
-                {
-                  width: "92%",
-                  alignSelf: "flex-end",
-                  marginTop: hp(1.2),
-                },
-              ]}
-              contentFit="cover"
-            />
-          )}
+                    <View style={styles.actions}>
+                        <Pressable style={styles.actionBtn} onPress={handleLike}>
+                            <Ionicons
+                                name={liked ? "heart" : "heart-outline"}
+                                size={18}
+                                color={liked ? "#f91880" : theme.colors.textLight}
+                            />
+                            {likesCount > 0 && <Text style={styles.actionCount}>{likesCount}</Text>}
+                        </Pressable>
 
-          {/* Actions */}
-          <View style={styles.commentActions}>
-            <Pressable style={styles.actionButton}>
-              <Icon name="heart" size={18} color={theme.colors.textLight} />
-              <Text style={styles.actionCount}>
-                {comment.likes?.length > 0 ? comment.likes.length : ""}
-              </Text>
-            </Pressable>
+                        <Pressable
+                            style={styles.actionBtn}
+                            onPress={() =>
+                                router.push(`/(app)/comment/${postId}_${comment._id}`)
+                            }
+                        >
+                            <Ionicons name="chatbubble-outline" size={18} color={theme.colors.textLight} />
+                        </Pressable>
+                    </View>
+                </View>
+            </View>
 
-            <Pressable
-              style={styles.actionButton}
-              onPress={() =>
-                router.push(`/(app)/comment/${postId}_${comment._id}`)
-              }
-            >
-              <Icon name="comment" size={18} color={theme.colors.textLight} />
-            </Pressable>
-          </View>
-        </View>
-      </View>
-
-      {/* Render Replies Recursively */}
-      {comment.replies?.map((reply: any) => (
-        <NestedComment
-          key={reply._id}
-          comment={reply}
-          postId={postId}
-          currentUserId={currentUserId}
-          depth={depth + 1}
-        />
-      ))}
-    </View>
-  );
+            {/* Render replies */}
+            {
+                hasReplies &&
+                comment.replies.map((reply: any, index: number) => (
+                    <NestedComment
+                        key={reply._id}
+                        comment={reply}
+                        postId={postId}
+                        currentUserId={currentUserId}
+                        depth={depth + 1}
+                        isLastInThread={index === comment.replies.length - 1}
+                    />
+                ))
+            }
+        </View >
+    );
 };
+
+const styles = StyleSheet.create({
+    commentContainer: {
+        flexDirection: "row",
+        marginTop: 12,
+        minHeight: 60,
+    },
+    avatarWrapper: {
+        width: 52,
+        alignItems: "center",
+    },
+    avatar: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+    },
+    content: {
+        flex: 1,
+        paddingRight: 16,
+    },
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: 4,
+    },
+    name: {
+        fontWeight: "700",
+        fontSize: 15,
+        color: theme.colors.text,
+    },
+    username: {
+        fontSize: 14,
+        color: theme.colors.textLight,
+    },
+    dot: {
+        color: theme.colors.textLight,
+        fontSize: 14,
+    },
+    time: {
+        fontSize: 14,
+        color: theme.colors.textLight,
+    },
+    text: {
+        fontSize: 15,
+        color: theme.colors.text,
+        lineHeight: 22,
+        marginTop: 4,
+    },
+    actions: {
+        flexDirection: "row",
+        gap: 32,
+        marginTop: 10,
+    },
+    actionBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    actionCount: {
+        fontSize: 14,
+        color: theme.colors.textLight,
+    },
+    // Twitter-style thin gray vertical line
+    threadLine: {
+        position: "absolute",
+        width: 2,
+        backgroundColor: "#cfd9de",
+        left: 16,
+        borderRadius: 1,
+    },
+    // Small horizontal curve connector
+    connectorLine: {
+        position: "absolute",
+        width: 20,
+        height: 2,
+        backgroundColor: "#cfd9de",
+        borderRadius: 1,
+        top: 17, // half avatar height
+    },
+});

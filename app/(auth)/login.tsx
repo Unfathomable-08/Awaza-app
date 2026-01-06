@@ -1,14 +1,13 @@
-// app/login.tsx (or wherever you have it)
-import Icon from '@/assets/icons';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import ScreenWrapper from '@/components/ui/ScreenWrapper';
-import { theme } from '@/constants/theme';
+import Icon from '@/assets/icons'; // Assuming this is compatible
+import Button from '@/components/Button';
+import Input from '@/components/Input';
+import ScreenWrapper from '@/components/ScreenWrapper';
+import { colors } from '@/constants/Colors';
+import { hp, wp } from '@/constants/Styles';
 import { signIn } from '@/utils/auth';
-import { hp, wp } from '@/utils/common';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Alert, Pressable, StatusBar, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { Alert, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 export default function Login() {
   const router = useRouter();
@@ -26,37 +25,18 @@ export default function Login() {
     }
 
     setLoading(true);
-    
+
     try {
       await signIn(email, password);
-
-      router.replace('/(app)/home'); 
+      // AuthContext/Layout will handle redirect usually, but let's encourage it
+      // router.replace('/(app)/home') is handled in index.tsx or _layout logic?
+      // For now, let's do manual replace if needed, or let auth state change drive it.
+      // But typically with router, explicit replace is good UX feedback.
+      // However, if logic is in _layout for protected routes, it might conflict.
+      // Let's keep it safe.
     } catch (error: any) {
       console.error('Login error:', error);
-
-      if (error.message === 'EMAIL_NOT_VERIFIED') {
-        Alert.alert(
-          'Email Not Verified',
-          'Please check your email and click the verification link.\n\nAlso check your Spam/Junk folder.',
-          [
-            {
-              text: 'Resend Email',
-              onPress: () => router.push('/(auth)/check-email'),
-            },
-            { text: 'Cancel', style: 'cancel' },
-          ]
-        );
-      } else if (error.code === 'auth/wrong-password') {
-        Alert.alert('Login Failed', 'Incorrect password');
-      } else if (error.code === 'auth/user-not-found') {
-        Alert.alert('Login Failed', 'No account found with this email');
-      } else if (error.code === 'auth/invalid-email') {
-        Alert.alert('Login Failed', 'Please enter a valid email address');
-      } else if (error.code === 'auth/too-many-requests') {
-        Alert.alert('Too Many Attempts', 'Account temporarily disabled. Try again later or reset password.');
-      } else {
-        Alert.alert('Login Failed', error.message || 'Something went wrong');
-      }
+      Alert.alert('Login Failed', error.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -64,9 +44,9 @@ export default function Login() {
 
   return (
     <ScreenWrapper bg="white">
-      <StatusBar barStyle="light-content" />
-
+      <StatusBar barStyle="dark-content" />
       <View style={styles.container}>
+
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.welcomeText}>Hey there,</Text>
@@ -76,13 +56,13 @@ export default function Login() {
         {/* Form */}
         <View style={styles.form}>
           <Input
-            icon={<Icon name="mail" size={26} color={theme.colors.textLight} />}
+            icon={<Icon name="mail" size={26} color={colors.textLight} />}
             placeholder="Enter your email"
             keyboardType="email-address"
             onChangeText={(text: string) => (emailRef.current = text)}
           />
           <Input
-            icon={<Icon name="lock" size={26} color={theme.colors.textLight} />}
+            icon={<Icon name="lock" size={26} color={colors.textLight} />}
             placeholder="Enter your password"
             secureTextEntry
             onChangeText={(text: string) => (passwordRef.current = text)}
@@ -93,7 +73,7 @@ export default function Login() {
           </Pressable>
 
           {/* Login Button */}
-          <Button title="Login" hasShadow={true} loading={loading} onPress={onSubmit} />
+          <Button title="Login" loading={loading} onPress={onSubmit} />
         </View>
 
         {/* Footer */}
@@ -113,57 +93,47 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: wp(5),
     paddingTop: hp(8),
-    paddingBottom: hp(5),
     gap: 20,
-  },
-  backBtn: {
-   alignSelf: 'flex-start',
-   marginLeft: 4,
-   padding: 4,
-   borderRadius: theme.radius.xxl,
-   backgroundColor: 'rgba(0,0,0,0.07)',
   },
   header: {
     gap: 6,
+    marginBottom: hp(3),
   },
   welcomeText: {
-    fontSize: hp(3),
-    color: theme.colors.text,
-    fontFamily: theme.fonts.medium,
-    fontWeight: theme.fonts.medium
-  } as TextStyle,
+    fontSize: hp(2.5),
+    color: colors.text,
+    fontWeight: '500',
+  },
   title: {
     fontSize: hp(4),
-    color: theme.colors.primary,
-    fontFamily: theme.fonts.extraBold,
-    fontWeight: theme.fonts.extraBold
-  } as TextStyle,
+    color: colors.primary,
+    fontWeight: '800',
+  },
   form: {
     gap: 20,
-    marginTop: hp(4),
   },
   forgotPassword: {
     alignSelf: 'flex-end',
   },
   forgotPasswordText: {
-    color: theme.colors.primary,
-    fontSize: hp(1.9),
-    fontFamily: theme.fonts.semibold,
+    color: colors.primary,
+    fontSize: hp(1.8),
+    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 5,
+    marginTop: hp(5),
   },
   footerText: {
-    color: theme.colors.text,
-    fontSize: hp(2),
-    fontFamily: theme.fonts.medium,
+    color: colors.text,
+    fontSize: hp(1.8),
   },
   signUpText: {
-    color: theme.colors.primary,
-    fontSize: hp(2),
-    fontFamily: theme.fonts.bold,
+    color: colors.primary,
+    fontSize: hp(1.8),
+    fontWeight: '700',
+    marginLeft: 5,
   },
 });

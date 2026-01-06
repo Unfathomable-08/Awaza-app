@@ -1,12 +1,5 @@
-import Icon from "@/assets/icons";
-import ScreenWrapper from "@/components/ui/ScreenWrapper";
-import { theme } from "@/constants/theme";
-import { useAuth } from "@/contexts/authContext";
-import { hp, wp } from "@/utils/common";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { addComment } from "@/utils/postActions";
-import { styles } from "@/styles/composePost";
 import {
     ActivityIndicator,
     Alert,
@@ -15,19 +8,31 @@ import {
     Pressable,
     ScrollView,
     StatusBar,
+    StyleSheet,
     Text,
     TextInput,
     View,
 } from "react-native";
 
+import Avatar from "@/components/Avatar";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import { colors } from "@/constants/Colors";
+import { hp, radius, spacing } from "@/constants/Styles";
+import { useAuth } from "@/contexts/authContext";
+import { createComment } from "@/utils/actions";
+
 const MAX_CHARS = 380;
 
 export default function WriteComment() {
-    const { id } = useLocalSearchParams(); // Id of postId + commentId
+    const { id } = useLocalSearchParams();
     const router = useRouter();
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
+
+    // Parse ID: Format "postId_parentCommentId"
+    const idString = Array.isArray(id) ? id[0] : id;
+    const [postId, parentCommentId] = (idString || "").split("_");
 
     const isOverLimit = text.length > MAX_CHARS;
     const isEmpty = text.trim().length === 0;
@@ -35,21 +40,18 @@ export default function WriteComment() {
 
     const handlePost = async () => {
         if (isDisabled) return;
-        
+        if (!postId) {
+            Alert.alert("Error", "Invalid post ID");
+            return;
+        }
+
         setLoading(true);
-        const idString = Array.isArray(id) ? id.join("") : id ?? "";
 
         try {
-            const parts = idString.split("_");
+            await createComment(postId, text.trim(), parentCommentId);
 
-            await addComment(
-                parts[0],
-                text.trim(),
-                parts[1]
-            );
-            
-            Alert.alert("Success", "Your comment has been posted!", [
-                { text: "Done", onPress: () => router.replace("/(app)/home") },
+            Alert.alert("Success", "Your reply has been posted!", [
+                { text: "Done", onPress: () => router.back() },
             ]);
         } catch (error: any) {
             console.error(error);
@@ -60,17 +62,19 @@ export default function WriteComment() {
     };
 
     return (
-        <ScreenWrapper bg="#fff">
-            <StatusBar barStyle="light-content" />
+        <ScreenWrapper bg={colors.background}>
+            <StatusBar barStyle="dark-content" />
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
                 style={{ flex: 1 }}
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <Pressable onPress={() => router.replace('/(app)/home')} hitSlop={10}>
+                    <Pressable onPress={() => router.back()} hitSlop={10}>
                         <Text style={styles.cancelText}>Cancel</Text>
                     </Pressable>
+
+                    <Text style={styles.title}>Reply</Text>
 
                     <Pressable
                         style={[styles.postButton, isDisabled && styles.postButtonDisabled]}
@@ -78,14 +82,9 @@ export default function WriteComment() {
                         disabled={isDisabled}
                     >
                         {loading ? (
-                            <ActivityIndicator color={theme.colors.primary} />
+                            <ActivityIndicator color={colors.primary} />
                         ) : (
-                            <Text
-                                style={[
-                                    styles.postButtonText,
-                                    isDisabled && styles.postButtonTextDisabled,
-                                ]}
-                            >
+                            <Text style={[styles.postButtonText, isDisabled && styles.postButtonTextDisabled]}>
                                 Post
                             </Text>
                         )}
@@ -96,30 +95,23 @@ export default function WriteComment() {
                 <View style={{ flex: 1 }}>
                     <ScrollView
                         contentContainerStyle={{
-                            paddingHorizontal: wp(5),
-                            paddingTop: hp(3),
-                            paddingBottom: hp(3),
+                            paddingHorizontal: spacing.m,
+                            paddingTop: spacing.l,
+                            paddingBottom: spacing.l,
                         }}
                         keyboardShouldPersistTaps="handled"
                     >
                         {/* User Row */}
                         <View style={styles.userRow}>
-                            <View style={styles.avatar}>
-                                <Icon
-                                    name="user"
-                                    size={26}
-                                    color={theme.colors.primary}
-                                    strokeWidth={1.8}
-                                />
-                            </View>
+                            <Avatar uri={user?.avatar} size={hp(5)} rounded={radius.full} />
                             <Text style={styles.username}>{user?.username || "You"}</Text>
                         </View>
 
                         {/* Text Input */}
                         <TextInput
                             style={[styles.textInput, isOverLimit && styles.textInputError]}
-                            placeholder="What's on your mind?"
-                            placeholderTextColor="#888"
+                            placeholder="Type your reply..."
+                            placeholderTextColor={colors.textLight}
                             multiline
                             value={text}
                             onChangeText={setText}
@@ -130,26 +122,16 @@ export default function WriteComment() {
 
                     {/* Bottom Toolbar pinned */}
                     <View style={styles.toolbar}>
-                        <Pressable disabled style={styles.iconBtn}>
-                            <Icon
-                                name="image"
-                                size={28}
-                                color={theme.colors.primary + "77"}
-                                strokeWidth={1.5}
-                            />
-                        </Pressable>
-
                         <View style={styles.charCounter}>
                             <Text
                                 style={[
                                     styles.count,
                                     {
-                                        color:
-                                            text.length > 300
-                                                ? "#e0245e"
-                                                : text.length > 200
-                                                    ? "#ffad1f"
-                                                    : "#666",
+                                        color: text.length > 300
+                                            ? colors.error
+                                            : text.length > 200
+                                                ? "#ffad1f"
+                                                : colors.textLight,
                                     },
                                 ]}
                             >
@@ -164,3 +146,85 @@ export default function WriteComment() {
         </ScreenWrapper>
     );
 }
+
+const styles = StyleSheet.create({
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: spacing.m,
+        paddingVertical: spacing.s,
+        borderBottomWidth: 0.5,
+        borderBottomColor: colors.separator,
+    },
+    cancelText: {
+        fontSize: hp(2),
+        color: colors.text
+    },
+    title: {
+        fontSize: hp(2),
+        fontWeight: '700',
+        color: colors.text
+    },
+    postButton: {
+        backgroundColor: colors.primary,
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        borderRadius: radius.full,
+    },
+    postButtonDisabled: {
+        backgroundColor: colors.inputBg, // Light gray for disabled
+    },
+    postButtonText: {
+        fontSize: hp(1.8),
+        color: "white",
+        fontWeight: "bold",
+    },
+    postButtonTextDisabled: {
+        color: colors.textLight,
+    },
+    userRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: spacing.l,
+        gap: spacing.s
+    },
+    username: {
+        fontSize: hp(2),
+        fontWeight: "600",
+        color: colors.text,
+    },
+    textInput: {
+        fontSize: hp(2.2),
+        color: colors.text,
+        minHeight: hp(20),
+    },
+    textInputError: {
+        color: colors.error,
+    },
+    toolbar: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        padding: spacing.m,
+        borderTopWidth: 0.5,
+        borderTopColor: colors.separator,
+        backgroundColor: colors.background
+    },
+    charCounter: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    count: {
+        fontSize: hp(1.6),
+    },
+    slash: {
+        fontSize: hp(1.6),
+        color: colors.textLight,
+        marginHorizontal: 2,
+    },
+    max: {
+        fontSize: hp(1.6),
+        color: colors.textLight,
+    },
+});

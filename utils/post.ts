@@ -1,5 +1,5 @@
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 // const API_URL = 'http://localhost:5000/api/posts';
 const API_URL = 'https://social-media-app-backend-khaki.vercel.app/api/posts';
@@ -56,13 +56,28 @@ export const getFeed = async (cursor?: string, limit: number = 5) => {
     }
 
     const res = await api.get(`/feed?${params.toString()}`);
-    console.log(res.data)
+    console.log('Feed response:', res.data);
+
+    let posts = [];
+    let nextCursor = null;
+    let hasMore = false;
+    let success = true;
+
+    if (Array.isArray(res.data)) {
+      posts = res.data;
+      hasMore = posts.length === limit;
+    } else {
+      posts = res.data.posts || [];
+      nextCursor = res.data.nextCursor || null;
+      hasMore = res.data.hasMore ?? (posts.length === limit);
+      success = res.data.success;
+    }
 
     return {
-      posts: res.data.posts || [],
-      nextCursor: res.data.nextCursor || null,
-      hasMore: res.data.hasMore ?? res.data.posts.length === limit,
-      success: res.data.success
+      posts,
+      nextCursor,
+      hasMore,
+      success
     };
   } catch (error: any) {
     console.error('Error fetching feed:', error);
@@ -83,12 +98,12 @@ export const getPost = async (postId: string) => {
   try {
     const res = await api.get(`/${postId}`);
     console.log(res.data)
-    
+
     return res.data;
   } catch (error: any) {
     console.error('Error fetching post:', error);
 
-    if (error.response){
+    if (error.response) {
       throw new Error(error.response.data.message || 'Failed to load post');
     } else if (error.request) {
       throw new Error('No response from server. Check your internet connection.');

@@ -1,5 +1,5 @@
-import { getFeed } from "./post";
 import { Alert } from "react-native";
+import { getFeed } from "./post";
 
 type LoadFeedParams = {
   isLoadMore?: boolean;
@@ -37,7 +37,7 @@ export const loadFeed = async ({
     const data = await getFeed(isLoadMore ? cursor ?? undefined : undefined);
 
     if (isLoadMore) {
-      setPosts((prev: any) => [...prev, ...data.posts]);
+      setPosts((prev: any[]) => [...prev, ...data.posts]);
     } else {
       setPosts(data.posts);
     }

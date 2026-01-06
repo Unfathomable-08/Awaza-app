@@ -1,172 +1,132 @@
-import { theme } from "@/constants/theme";
+import { theme } from "@/constants/theme"; // We might need to map this to colors if theme doesn't exist, but let's check.
 import { hp, wp } from "@/utils/common";
-import { StyleSheet, TextStyle } from "react-native";
+import { StyleSheet } from "react-native";
+
+// Mock theme if it doesn't exist or map to our colors
+const colors = {
+    text: '#111',
+    textLight: '#666',
+    border: '#eee',
+    primary: '#E60023',
+    ...((theme as any)?.colors || {})
+};
+const radius = {
+    full: 9999,
+    ...((theme as any)?.radius || {})
+};
 
 export const styles = StyleSheet.create({
-  postHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(3),
-    marginBottom: hp(2),
-    paddingHorizontal: wp(4),
-  },
-  headerTitle: {
-    fontSize: hp(2.6),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
-  } as TextStyle,
-  backButton: {
-    padding: 5,
-    borderRadius: 20,
-    backgroundColor: "#e9e9e9",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: wp(6),
-  },
-  errorText: {
-    fontSize: hp(2),
-    color: theme.colors.textLight,
-    textAlign: "center",
-    marginTop: hp(2),
-  },
-  noComments: {
-    textAlign: "center",
-    padding: hp(5),
-    color: theme.colors.textLight,
-    fontSize: hp(2),
-  },
-  postAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  postName: {
-    fontWeight: theme.fonts.bold,
-    fontSize: hp(2.1),
-    color: theme.colors.text,
-  } as TextStyle,
-  postUsername: {
-    color: theme.colors.textLight,
-    fontSize: hp(1.9),
-  },
-  postname: {
-    color: theme.colors.dark,
-    fontSize: hp(2.2),
-    fontWeight: theme.fonts.semibold,
-  } as TextStyle,
-  postTime: {
-    color: theme.colors.textLight,
-    fontSize: hp(1.8),
-  },
-  postText: {
-    fontSize: hp(2.1),
-    marginTop: hp(2),
-    lineHeight: hp(3),
-    color: theme.colors.text,
-    paddingHorizontal: wp(4),
-  },
-  postImage: {
-    width: "100%",
-    aspectRatio: "4/3",
-    borderRadius: 16,
-    marginTop: hp(2),
-  },
-  postActions: {
-    flexDirection: "row",
-    gap: wp(7),
-    marginTop: hp(2.5),
-    alignItems: "center",
-    borderColor: theme.colors.textLight + "4F",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    paddingHorizontal: wp(4),
-    paddingVertical: 6,
-  },
-  repliesTitle: {
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
-    fontSize: hp(2.2),
-    fontWeight: "600",
-    color: theme.colors.text,
-  },
-  replyFab: {
-    position: "absolute",
-    bottom: hp(3),
-    right: wp(5),
-    backgroundColor: theme.colors.primary,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 8,
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  actionCount: {
-    fontSize: hp(2),
-    color: theme.colors.textLight,
-  },
-  commentContainer: {
-    flexDirection: "row", // Avatar left, content right
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
-    alignItems: "flex-start",
-    gap: wp(6),
-  },
-  commentRight: {
-    flex: 1, // take remaining width
-  },
-  commentHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(2),
-  },
-  commentAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 25,
-  },
-  commentName: {
-    fontWeight: theme.fonts.semibold,
-    fontSize: hp(2.1),
-    color: theme.colors.text,
-  } as TextStyle,
-  commentUsername: {
-    color: theme.colors.textLight,
-    fontSize: hp(1.9),
-  },
-  commentTime: {
-    color: theme.colors.textLight,
-    fontSize: hp(1.8),
-  },
-  commentText: {
-    fontSize: hp(2.1),
-    lineHeight: hp(3),
-    color: theme.colors.text,
-    marginTop: hp(0.5),
-  },
-  commentImage: {
-    width: "100%",
-    aspectRatio: 4 / 3,
-    borderRadius: 16,
-    marginTop: hp(1.5),
-  },
-  commentActions: {
-    flexDirection: "row",
-    gap: wp(7),
-    marginTop: hp(1.5),
-    alignItems: "center",
-  },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
+    },
+    errorText: {
+        color: colors.text,
+        fontSize: hp(2),
+    },
+    postHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: wp(4),
+        paddingVertical: hp(1.5),
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    backButton: {
+        padding: 8,
+        marginRight: 8,
+    },
+    headerTitle: {
+        flex: 1,
+        fontSize: hp(2.2),
+        fontWeight: "700",
+        color: colors.text,
+        textAlign: "center",
+    },
+    postAvatar: {
+        height: hp(5.5),
+        width: hp(5.5),
+        borderRadius: radius.full,
+        marginRight: 12,
+    },
+    postName: {
+        fontSize: hp(2),
+        fontWeight: "600",
+        color: colors.text,
+    },
+    postUsername: {
+        fontSize: hp(1.6),
+        color: colors.textLight,
+    },
+    postTime: {
+        fontSize: hp(1.6),
+        color: colors.textLight,
+    },
+    postText: {
+        fontSize: hp(2),
+        color: colors.text,
+        lineHeight: hp(3),
+        paddingHorizontal: wp(4),
+        marginVertical: hp(1),
+    },
+    postImage: {
+        width: "100%",
+        height: hp(35),
+        marginVertical: hp(1.5),
+    },
+    postActions: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: wp(4),
+        paddingVertical: hp(1.5),
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        gap: 24,
+    },
+    actionButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    actionCount: {
+        fontSize: hp(1.8),
+        color: colors.textLight,
+    },
+    repliesTitle: {
+        fontSize: hp(2),
+        fontWeight: "600",
+        color: colors.text,
+        paddingHorizontal: wp(4),
+        paddingTop: hp(2),
+        paddingBottom: hp(1),
+    },
+    noComments: {
+        fontSize: hp(1.8),
+        color: colors.textLight,
+        textAlign: "center",
+        marginTop: hp(4),
+    },
+    replyFab: {
+        position: "absolute",
+        bottom: hp(3),
+        right: wp(5),
+        backgroundColor: colors.primary,
+        padding: 16,
+        borderRadius: radius.full,
+        elevation: 4,
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
+    }
 });

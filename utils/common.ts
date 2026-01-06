@@ -10,14 +10,31 @@ const wp = (percentage: number) => {
   return (percentage * deviceWidth) / 100; // Like vw in css
 };
 
-const timeAgo = (date: string) => {
-  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
+const timeAgo = (date: string | number | Date) => {
+  if (!date) return 'now';
+
+  const now = Date.now();
+  const past = new Date(date).getTime();
+
+  // Invalid date check
+  if (isNaN(past)) return 'now';
+
+  const diffInSeconds = Math.floor((now - past) / 1000);
+
+  if (diffInSeconds < 0) return 'now'; // Future date handling
+  if (diffInSeconds < 60) return 'just now';
+
+  const minutes = Math.floor(diffInSeconds / 60);
   if (minutes < 60) return `${minutes}m`;
+
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h`;
-  return `${Math.floor(hours / 24)}d`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+
+  return new Date(date).toLocaleDateString();
 };
 
-export { hp, wp, deviceHeight, deviceWidth, timeAgo };
+export { deviceHeight, deviceWidth, hp, timeAgo, wp };
+
